@@ -5,6 +5,9 @@ const express = require('express');
 const port = process.env.PORT || 3000;
 const { Wechat } = require('wechat-jssdk');
 
+const { get_upload_token } = require('./qiniu.js');
+
+
 const wechatConfig = {
     //set your oauth redirect url, defaults to localhost
     "wechatRedirectUrl": "http://brender.cn/api/wechat/",
@@ -29,17 +32,23 @@ const wechatConfig = {
 const wx = new Wechat(wechatConfig);
 const app = express();
 
+// need check head =========  merge with org files TODO
+app.get('/api/upload_token', (req, res) => {
+    var uploadToken = get_upload_token();
+    // console.log(uploadToken);
+    res.send(uploadToken);
+});
+
+
 app.get('/api', (req, res) => res.send('Hello World!'));
 
 
 app.get('/api/wechat/get-signature', (req, res) => {
-  wx.jssdk.getSignature(req.query.url).then(signatureData => {
-    res.json(signatureData);
-  });
+    wx.jssdk.getSignature(req.query.url).then(signatureData => {
+        res.json(signatureData);
+    });
 });
 
 
 
 app.listen(port, () => console.log(`App listening on port ${port}!`));
-
-

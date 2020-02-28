@@ -7,13 +7,14 @@ const mac = new qiniu.auth.digest.Mac(accessKey, secretKey);
 
 const bucket = 'brender';
 const options = {
-    scope: bucket,
+    scope: 'brender',
 };
-const putPolicy = new qiniu.rs.PutPolicy(options);
 
 
 
 const get_upload_token = () => {
+    const putPolicy = new qiniu.rs.PutPolicy(options);
+
     var uploadToken = putPolicy.uploadToken(mac);
     return uploadToken;
 }

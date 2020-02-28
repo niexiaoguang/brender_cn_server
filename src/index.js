@@ -1,54 +1,49 @@
 'use strict';
-const fs = require('fs');
-const path = require('path');
-const express = require('express');
-const port = process.env.PORT || 3000;
-const { Wechat } = require('wechat-jssdk');
+const config = require('./config.js');
 
-const { get_upload_token } = require('./qiniu.js');
+const { logger } = require('./utils/logger.js'); // require module as logger not the object inside which required by {logger}
+
+// const DB = require('./utils/db.js');
+
+const httpServer = require('./http_server.js');
 
 
-const wechatConfig = {
-    //set your oauth redirect url, defaults to localhost
-    "wechatRedirectUrl": "http://brender.cn/api/wechat/",
-    "wechatToken": "c0cb73f4a56d4cbabbc9401cdf120b09", //not necessary required
-    "appId": "wx71881af6d1cdaea8",
-    "appSecret": "74b7f36f09f414001fc429c756d62a05",
-    // card: true, //enable cards
-    // payment: true, //enable payment support
-    // merchantId: '', //
-    // paymentSandBox: true, //dev env
-    // paymentKey: '', //API key to gen payment sign
-    // paymentCertificatePfx: fs.readFileSync(path.join(process.cwd(), 'cert/apiclient_cert.p12')),
-    //default payment notify url
-    // paymentNotifyUrl: `http://your.domain.com/api/wechat/payment/`,
-    //mini program config
-    // "miniProgram": {
-    //     "appId": "mp_appid",
-    //     "appSecret": "mp_app_secret",
-    // }
+
+const do_init = async () => {
+
+    // process.env.NODE_ENV = 'production';
+
+    var myid = process.env.nodeid;
+    logger.info('my id : ' + myid);
+
+    var redisHost = process.env.redishost;
+    var redisPort = process.env.redisport;
+    var redisPass = process.env.redispass;
+    // for dev only =============  =============
+    // export NODE_ENV=production
+
+
+    var dbHost = process.env.dbhost;
+    var dbPort = process.env.dbport;
+    var dbUser = process.env.dbuser;
+    var dbPass = process.env.dbpass;
+    var dbName = process.env.dbname;
+    var resp = await DB.init(dbHost, dbPort, dbUser, dbPass, dbName);
+    // logger.info(JSON.stringify(resp));
+    return resp;
+
+};
+
+const start = () => {
+    logger.info('init done , start');
+    httpServer.start();
+};
+
+const init = async () => {
+    var res;
+    // var res = await do_init();
+    logger.info('init with : ' + JSON.stringify(res));
+    start();
 }
 
-const wx = new Wechat(wechatConfig);
-const app = express();
-
-// need check head =========  merge with org files TODO
-app.get('/api/upload_token', (req, res) => {
-    var uploadToken = get_upload_token();
-    // console.log(uploadToken);
-    res.send(uploadToken);
-});
-
-
-app.get('/api', (req, res) => res.send('Hello World!'));
-
-
-app.get('/api/wechat/get-signature', (req, res) => {
-    wx.jssdk.getSignature(req.query.url).then(signatureData => {
-        res.json(signatureData);
-    });
-});
-
-
-
-app.listen(port, () => console.log(`App listening on port ${port}!`));
+init();

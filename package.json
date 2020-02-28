@@ -9,12 +9,24 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
-  "author": "",
+  "author": "Pampa Nie -- nxg@lohosoft.com",
   "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/niexiaoguang/brender_cn_server.git"
+  },
+  "bugs": {
+    "url": "https://github.com/niexiaoguang/brender_cn_server/issues"
+  },
+  "homepage": "https://github.com/niexiaoguang/brender_cn_server#readme",
   "dependencies": {
     "express": "^4.17.1",
     "wechat-jssdk": "^5.0.4",
-    "qiniu": "^7.3.0"
+    "qiniu": "^7.3.0",
+    "body-parser": "^1.19.0",
+    "http-status-codes": "^1.4.0",
+    "mariadb": "^2.2.0",
+    "winston": "^3.2.1"
   },
   "devDependencies": {
     "nodemon": "^2.0.2"

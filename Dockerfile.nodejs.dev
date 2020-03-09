@@ -1,0 +1,43 @@
+FROM node:13-alpine
+
+MAINTAINER Pampa Nie "nxg@lohosoft.com"
+
+ARG USER_ID
+ARG GROUP_ID
+
+# Create a group for ********* alpine ***********
+RUN addgroup -S $GROUP_ID 
+
+# Create a user under group
+RUN adduser -S -D -h /usr/app/ $USER_ID -G $GROUP_ID
+
+# Chown all the files to the app user.
+RUN chown -R $USER_ID:$GROUP_ID /usr/app
+
+# Switch to user
+USER $USER_ID
+
+WORKDIR /usr/app
+
+
+# Copy source to container
+COPY package*.json ./
+
+# mark
+
+RUN echo "20200310" >> /dev/null
+
+# install with local servers
+RUN npm install --registry https://registry.npm.taobao.org
+
+# for production only
+#RUN npm install --registry https://registry.npm.taobao.org --only=production
+
+
+# Open the mapped port
+#EXPOSE 3000
+
+
+#CMD npm start
+
+CMD npm run dev

@@ -23,8 +23,9 @@ WORKDIR /usr/app
 # Copy source to container
 COPY package*.json ./
 
-# mark
+RUN mkdir src
 
+# mark
 RUN echo "20200310" >> /dev/null
 
 # install with local servers

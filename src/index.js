@@ -42,7 +42,7 @@ const start = () => {
 const init = async () => {
     var res;
     // var res = await do_init();
-    logger.info('start init with : ' + JSON.stringify(res));
+    logger.info('init with : ' + JSON.stringify(res));
     start();
 }
 

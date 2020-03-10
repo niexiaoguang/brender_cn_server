@@ -27,7 +27,7 @@
     "http-status-codes": "^1.4.0",
     "winston": "^3.2.1",
     "mysql":"^2.18.1",
-    "amqplib-plus": "^1.0.3",
+    "amqplib":"^0.5.5",
     "avsc": "^5.4.19"
   },
   "devDependencies": {

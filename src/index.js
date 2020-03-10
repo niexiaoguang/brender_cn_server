@@ -8,6 +8,10 @@ const { logger } = require('./utils/logger.js'); // require module as logger not
 const httpServer = require('./http_server.js');
 
 
+const test_amqp = require('./test_amqp.js');
+
+
+
 
 const do_init = async () => {
 
@@ -37,12 +41,14 @@ const do_init = async () => {
 const start = () => {
     logger.info('init done , start');
     httpServer.start();
+
+    test_amqp.test();
 };
 
 const init = async () => {
     var res;
     // var res = await do_init();
-    logger.info('init with : ' + JSON.stringify(res));
+    logger.info('node dev init with : ' + JSON.stringify(res));
     start();
 }
 

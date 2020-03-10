@@ -2,12 +2,11 @@ version: "3"
 
 services:
   server:
-    image: node:12
+    image: node:13-alpine
     container_name: brender_cn_server
     working_dir: /app
     volumes:
       - ./:/app
-      - ./data/certs:/app/certs:ro
     ports:
       - 3000:3000
     environment:

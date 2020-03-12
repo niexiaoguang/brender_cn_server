@@ -1,5 +1,7 @@
 *.key
 *.crt
+/ssl
+ssl/
 # Logs
 logs
 *.log

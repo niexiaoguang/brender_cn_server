@@ -3,8 +3,8 @@ var fs = require('fs');
 const path = require('path');
 
 var opts = {
-  cert: fs.readFileSync(path.resolve(__dirname, './ssl/client/rabbit-client.cert.pem')),      // client cert
-  key: fs.readFileSync(path.resolve(__dirname, './ssl/client/rabbit-client.key.pem')),        // client key
+  cert: fs.readFileSync(path.resolve(__dirname, './ssl/client/brender-rabbit-client.cert.pem')),      // client cert
+  key: fs.readFileSync(path.resolve(__dirname, './ssl/client/brender-rabbit-client.key.pem')),        // client key
   passphrase: 'PLE427VKgNSpqEXN', // passphrase for key
   ca: [fs.readFileSync(path.resolve(__dirname, './ssl/cacert.pem'))],           // array of trusted CA certs
   rejectUnauthorized: false
@@ -22,8 +22,8 @@ const test = () => {
       console.log('inside open');
       // ... go to town
       conn.createChannel().then(function(ch){
-        var q = 'hello';
-        var msg = 'Hello Brender hahaha again!';
+        var q = 'erlang';
+        var msg = 'Hello Brender hahaha!';
     
         var ok = ch.assertQueue(q, {durable: false});
         return ok.then(function(_qok) {

@@ -16,14 +16,14 @@ const test = () => {
     
 
 
-    var open = require('amqplib').connect('amqps://amqp.brender.cn', opts);
+    var open = require('amqplib').connect('amqps://amqps.brender.cn', opts);
     open.then(function(conn) {
 
       console.log('inside open');
       // ... go to town
       conn.createChannel().then(function(ch){
         var q = 'erlang';
-        var msg = 'Hello Brender hahaha!';
+        var msg = 'Hello Brender from node js!';
     
         var ok = ch.assertQueue(q, {durable: false});
         return ok.then(function(_qok) {

@@ -2,13 +2,13 @@ version: "3"
 
 services:
   server:
-    image: node:13-alpine
+    image: node_dev
     container_name: brender_cn_server
-    working_dir: /app
+    working_dir: /usr/app
     volumes:
-      - ./:/app
+      - ./src:/usr/app/src
     ports:
-      - 3000:3000
-    environment:
-      - PORT=3000
+      - "3000:3000"
+    expose:
+      - "5671"
     command: sh -c "npm config set registry https://registry.npm.taobao.org && npm install && npm run dev"

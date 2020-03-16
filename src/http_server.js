@@ -110,7 +110,7 @@ const start = () => {
         var token = req.body.token;
         logger.info('req : ' + JSON.stringify(req.body));
         logger.info('login pool : ' + JSON.stringify(bl_login_token_pool));
-        if (bl_login_token_pool[token]) {
+        if (Object.prototype.hasOwnProperty.call(bl_login_token_pool, token)) {
             var response_data = bl_login_token_pool[token];
             delete bl_login_token_pool[token];
             res.json({

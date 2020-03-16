@@ -42,7 +42,7 @@ const start = () => {
     logger.info('init done , start');
     httpServer.start();
 
-    test_amqp.test();
+    // test_amqp.test();
 };
 
 const init = async () => {

@@ -11,8 +11,6 @@ const httpServer = require('./http_server.js');
 const test_amqp = require('./test_amqp.js');
 
 
-
-
 const do_init = async () => {
 
     // process.env.NODE_ENV = 'production';
@@ -42,7 +40,7 @@ const start = () => {
     logger.info('init done , start');
     httpServer.start();
 
-    // test_amqp.test();
+    test_amqp.test();
 };
 
 const init = async () => {

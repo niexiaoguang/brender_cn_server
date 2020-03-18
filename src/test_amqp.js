@@ -3,27 +3,27 @@ var fs = require('fs');
 const path = require('path');
 
 var opts = {
-  cert: fs.readFileSync(path.resolve(__dirname, './ssl/client/brender-rabbit-client.cert.pem')),      // client cert
-  key: fs.readFileSync(path.resolve(__dirname, './ssl/client/brender-rabbit-client.key.pem')),        // client key
-  passphrase: 'PLE427VKgNSpqEXN', // passphrase for key
+  cert: fs.readFileSync(path.resolve(__dirname, './ssl/brender-client.cert.pem')),      // client cert
+  key: fs.readFileSync(path.resolve(__dirname, './ssl/brender-client.key.pem')),        // client key
+  passphrase:"dMokP0brnSeGsphGCfsH41Yr2cwDLauB",
   ca: [fs.readFileSync(path.resolve(__dirname, './ssl/cacert.pem'))],           // array of trusted CA certs
   rejectUnauthorized: false
 };
 
+
+
 const test = () => {
     console.log('test amqp');
     // var amqp = require('amqplib');
-    
-
-
-    var open = require('amqplib').connect('amqps://amqps.brender.cn', opts);
+  
+    var open = require('amqplib').connect('amqps://guest:guest@amqps.brender.cn', opts);
     open.then(function(conn) {
 
       console.log('inside open');
       // ... go to town
       conn.createChannel().then(function(ch){
         var q = 'erlang';
-        var msg = 'Hello Brender from node js!';
+        var msg = 'Hello Brenderfrom node js!';
     
         var ok = ch.assertQueue(q, {durable: false});
         return ok.then(function(_qok) {

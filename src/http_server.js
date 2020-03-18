@@ -41,7 +41,7 @@ const {
 
 const {
     make_uuid_by_openid
-} = require('./utils/sh1.js');
+} = require('./utils/crypt.js');
 
 // obj to save blender login token with timeout 30 sencs
 var bl_login_token_pool = {};

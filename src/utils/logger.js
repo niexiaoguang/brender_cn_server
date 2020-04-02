@@ -42,4 +42,7 @@ logger.info = function(info) {
     console.log(info);
 };
 
+logger.error = function(error) {
+    console.log(error);
+}
 exports.logger = logger;

@@ -32,8 +32,33 @@ const {
 } = require('./utils/crypt.js');
 
 const {
-    get_upload_token
+    get_upload_token_pri
 } = require('./utils/qiniu.js');
+
+const {
+    get_upload_token_pub
+} = require('./utils/qiniu.js');
+
+
+const {
+    get_download_token_pub
+} = require('./utils/qiniu.js');
+
+const {
+    get_download_token_pri
+} = require('./utils/qiniu.js');
+
+const {
+    handle_get_file_hash
+} = require('./utils/qiniu.js');
+
+
+const {
+    handle_get_batch_file_hash
+} = require('./utils/qiniu.js');
+
+
+
 
 const {
     inspect
@@ -84,14 +109,65 @@ const wechatConfig = {
 const wx = new Wechat(wechatConfig);
 const app = express();
 
+// parse application/x-www-form-urlencoded
+app.use(bodyParser.urlencoded({ extended: false }));
+
+// parse application/json
+app.use(bodyParser.json());
+
+
 const start = () => {
     // need check head =========  merge with org files TODO
-    app.get('/api/upload_token', (req, res) => {
+    app.get('/api/file_hash', (req, res) => {
+        logger.info('request file hash' + req);
+        var bucket = req.query.bucket;
+        var key = req.query.key;
+        handle_get_file_hash(bucket, key, res);
+
+    });
+
+    app.post('/api/batch_file_hash', (req, res) => {
+        logger.info('request a batch file hash' + req);
+        var bucket = req.body.bucket;
+        var keys = req.body.keys;
+        handle_get_batch_file_hash(bucket, keys, res);
+
+    });
+
+
+
+    app.get('/api/upload_token_pri', (req, res) => {
         logger.info('request upload token' + req);
-        var uploadToken = get_upload_token();
+        var uploadToken = get_upload_token_pri();
         // logger.info(uploadToken);
         res.send(uploadToken);
     });
+
+
+    app.get('/api/upload_token_pub', (req, res) => {
+        logger.info('request upload token' + req);
+        var uploadToken = get_upload_token_pub();
+        // logger.info(uploadToken);
+        res.send(uploadToken);
+    });
+
+
+    app.get('/api/download_token_pub', (req, res) => {
+        logger.info('request download token pub ' + req);
+        var key = req.query.key;
+        var downloadToken = get_download_token_pub(key);
+        // logger.info(downloadToken);
+        res.send(downloadToken);
+    });
+
+    app.get('/api/download_token_pri', (req, res) => {
+        logger.info('request download token pri ' + req);
+        var key = req.query.key;
+        var downloadToken = get_download_token_pri(key);
+        // logger.info(downloadToken);
+        res.send(downloadToken);
+    });
+
 
 
     app.get('/api', (req, res) => {
@@ -130,7 +206,7 @@ const start = () => {
     app.get('/api/wechat/bl_login_call_back', (req, res) => {
 
         wx.oauth.getUserInfo(req.query.code)
-            .then(function (userProfile) {
+            .then(function(userProfile) {
                 logger.info(userProfile);
                 // logger.info('login code : ' + req.query.code);
                 logger.info('login token : ' + req.query.state);

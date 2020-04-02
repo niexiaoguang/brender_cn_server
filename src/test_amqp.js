@@ -23,7 +23,7 @@ const test = () => {
       // ... go to town
       conn.createChannel().then(function(ch){
         var q = 'erlang';
-        var msg = 'Hello Brenderfrom node js!';
+        var msg = 'Hello Brender from node js!';
     
         var ok = ch.assertQueue(q, {durable: false});
         return ok.then(function(_qok) {

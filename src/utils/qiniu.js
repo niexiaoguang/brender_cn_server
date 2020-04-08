@@ -97,12 +97,14 @@ const handle_get_file_hash = (bucket, key, res) => {
                 // logger.info(respBody.type);
 
                 // return respBody.hash;
-                res.send(JSON.stringify([key, respBody.hash]));
+                var data = { "key": key, "hash": respBody.hash };
+                res.send(JSON.stringify(data));
             } else {
                 logger.error(respInfo.statusCode);
                 logger.error(respBody.error);
                 // return 'error';
-                res.send('error');
+                var data = { "key": key, "hash": "none" }
+                res.send(JSON.stringify(data));
             }
         }
     });

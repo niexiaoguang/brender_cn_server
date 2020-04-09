@@ -21,6 +21,63 @@ const options_pub = {
     scope: bucket_pub,
 };
 
+const {
+    hashhash
+} = require('./crypt.js');
+
+
+const handle_pre_upload = (uuid, hash, res) => {
+    var hash = hashhash(hash); // conver hash TODO
+    var key = uuid + '-' + hash; // hanlde hash to file key name TODO
+    var bucket = 'brender-pub'; // TODO
+    var config = new qiniu.conf.Config();
+    //config.useHttpsDomain = true;
+    config.zone = qiniu.zone.Zone_z0;
+    var bucketManager = new qiniu.rs.BucketManager(mac, config);
+
+
+    bucketManager.stat(bucket, key, function(err, respBody, respInfo) {
+        if (err) {
+
+            logger.error(err);
+            //   return 'error';
+            res.send('error'); // handle error TODO
+            //throw err;
+        } else {
+            if (respInfo.statusCode == 200) {
+                logger.info([key, respBody.hash]);
+                // logger.info(respBody.fsize);
+                // logger.info(respBody.mimeType);
+                // logger.info(respBody.putTime);
+                // logger.info(respBody.type);
+
+                // return respBody.hash;
+                var data = { "key": key, "hash": respBody.hash };
+                if (data['hash'] === hash) {
+                    const putPolicy = new qiniu.rs.PutPolicy(options_pub);
+
+                    var uploadToken = putPolicy.uploadToken(mac);
+
+                    var resp = { 'uuid': uuid, 'hash': hash, 'token': uploadToken };
+                    res.send(JSON.stringify(resp));
+
+
+                } else {
+                    var data = { "uuid": uuid, "hash": hash, 'token': 'no' }
+                    res.send(JSON.stringify(data));
+                }
+
+            } else {
+                logger.error(respInfo.statusCode);
+                logger.error(respBody.error);
+                // return 'error';
+                var data = { "uuid": uuid, "hash": hash, 'token': 'no' }
+                res.send(JSON.stringify(data));
+            }
+        }
+    });
+}
+
 // handle result TODO
 const handle_write_data_info_file_pub = (data, res) => {
 
@@ -163,7 +220,7 @@ const get_upload_token_pri = () => {
     return uploadToken;
 }
 
-const get_upload_token_pub = () => {
+const get_upload_token_pub = async() => {
     const putPolicy = new qiniu.rs.PutPolicy(options_pub);
 
     var uploadToken = putPolicy.uploadToken(mac);
@@ -195,3 +252,4 @@ exports.get_download_token_pri = get_download_token_pri;
 exports.handle_get_file_hash = handle_get_file_hash;
 exports.handle_get_batch_file_hash = handle_get_batch_file_hash;
 exports.handle_write_data_info_file_pub = handle_write_data_info_file_pub;
+exports.handle_pre_upload = handle_pre_upload;

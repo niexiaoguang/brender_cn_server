@@ -33,6 +33,11 @@ const {
 
 // qiniu api
 // ========================================================
+
+const {
+    handle_pre_upload
+} = require('./utils/qiniu.js');
+
 const {
     handle_write_data_info_file_pub
 } = require('./utils/qiniu.js');
@@ -131,7 +136,12 @@ const start = () => {
     });
 
 
-
+    app.get('/api/pre_upload', (req, res) => {
+        logger.info('pre upload req for upload token ' + req);
+        var uuid = req.query.uuid;
+        var hash = req.query.hash;
+        handle_pre_upload(uuid, hash, res);
+    });
 
 
     // need check head =========  merge with org files TODO

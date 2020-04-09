@@ -4,8 +4,8 @@ const {
     logger
 } = require('./logger.js'); // require module as logger not the object inside which required by {logger}
 
-
-
+const myconfig = require('../config.js');
+// console.log(config.httpReqAttrAbspath);
 const accessKey = 'SGruygxQyj9pyA4v0x1wqAjtLlzov1IoaA3m0F2N';
 const secretKey = 'd8ldTmV3_XX-9Aysd8ruh0EUPWjv8jIpGgORVvUk';
 
@@ -41,7 +41,13 @@ const handle_pre_upload = (uuid, hash, res) => {
 
             logger.error(err);
             //   return 'error';
-            res.send('error'); // handle error TODO
+
+            var resp = {};
+            resp[myconfig.httpRespAttrStatus] = myconfig.httpRespError;
+            resp[myconfig.httpRespAttrInfo] = myconfig.httpRespNo;
+            res.send(JSON.stringify(resp)); // handle error TODO
+
+
             //throw err;
         } else {
             if (respInfo.statusCode == 200) {
@@ -52,27 +58,41 @@ const handle_pre_upload = (uuid, hash, res) => {
                 // logger.info(respBody.type);
 
                 // return respBody.hash;
-                var data = { "key": key, "hash": respBody.hash };
-                if (data['hash'] === hash) {
+                if (respBody.hash === hash) {
                     const putPolicy = new qiniu.rs.PutPolicy(options_pub);
 
                     var uploadToken = putPolicy.uploadToken(mac);
-
-                    var resp = { 'uuid': uuid, 'hash': hash, 'token': uploadToken };
+                    var resp = {};
+                    resp[myconfig.httpRespAttrStatus] = myconfig.httpRespOk;
+                    resp[myconfig.httpRespAttrInfo] = myconfig.httpRespNo;
+                    resp[myconfig.httpReqAttrUuid] = uuid;
+                    resp[myconfig.httpRespAttrHash] = hash;
+                    resp[myconfig.httpRespAttrToken] = uploadToken;
                     res.send(JSON.stringify(resp));
 
 
                 } else {
-                    var data = { "uuid": uuid, "hash": hash, 'token': 'no' }
-                    res.send(JSON.stringify(data));
+
+                    var resp = {};
+                    resp[myconfig.httpRespAttrStatus] = myconfig.httpRespError;
+                    resp[myconfig.httpRespAttrInfo] = myconfig.ErrorQiniuTokanRead;
+                    res.send(JSON.stringify(resp));
+
                 }
 
             } else {
                 logger.error(respInfo.statusCode);
                 logger.error(respBody.error);
                 // return 'error';
-                var data = { "uuid": uuid, "hash": hash, 'token': 'no' }
-                res.send(JSON.stringify(data));
+                var resp = {};
+
+
+                resp[myconfig.httpRespAttrStatus] = myconfig.httpRespOk;
+                resp[myconfig.httpRespAttrInfo] = myconfig.httpRespNo;
+                resp[myconfig.httpReqAttrUuid] = uuid;
+                resp[myconfig.httpReqAttrHash] = hash;
+                resp[myconfig.httpRespAttrToken] = myconfig.httpRespNo;
+                res.send(JSON.stringify(resp));
             }
         }
     });
@@ -245,6 +265,9 @@ const get_download_token_pri = (key) => {
     var privateDownloadUrl = bucketManager.privateDownloadUrl(privateBucketDomain, key, deadline);
     return privateDownloadUrl;
 }
+
+
+
 exports.get_upload_token_pri = get_upload_token_pri;
 exports.get_upload_token_pub = get_upload_token_pub;
 exports.get_download_token_pub = get_download_token_pub;

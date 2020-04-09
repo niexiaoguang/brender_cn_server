@@ -12,7 +12,7 @@ const hashhash = (rawhash) => {
 
 
 
-    var hex = Buffer(rawhash).toString('hex');
+    var hex = Buffer.from(rawhash).toString('hex');
     // console.log(hex); // '48656c6c6f20576f726c64'
 
     var encoded = hashids.encodeHex(hex);

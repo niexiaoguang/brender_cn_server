@@ -129,7 +129,7 @@ app.use(bodyParser.json());
 
 
 const start = () => {
-    app.post('/api/test_write_data_into_file', (req, res) => {
+    app.post('/api/file_metadata', (req, res) => {
         var data = req.body;
         logger.info(data);
         handle_write_data_info_file_pub(data, res);
@@ -145,55 +145,55 @@ const start = () => {
 
 
     // need check head =========  merge with org files TODO
-    app.get('/api/file_hash', (req, res) => {
-        logger.info('request file hash' + req);
-        var bucket = req.query.bucket;
-        var key = req.query.key;
-        handle_get_file_hash(bucket, key, res);
+    // app.get('/api/file_hash', (req, res) => {
+    //     logger.info('request file hash' + req);
+    //     var bucket = req.query.bucket;
+    //     var key = req.query.key;
+    //     handle_get_file_hash(bucket, key, res);
 
-    });
+    // });
 
-    app.post('/api/batch_file_hash', (req, res) => {
-        logger.info('request a batch file hash' + req);
-        var bucket = req.body.bucket;
-        var keys = req.body.keys;
-        handle_get_batch_file_hash(bucket, keys, res);
+    // app.post('/api/batch_file_hash', (req, res) => {
+    //     logger.info('request a batch file hash' + req);
+    //     var bucket = req.body.bucket;
+    //     var keys = req.body.keys;
+    //     handle_get_batch_file_hash(bucket, keys, res);
 
-    });
-
-
-
-    app.get('/api/upload_token_pri', (req, res) => {
-        logger.info('request upload token' + req);
-        var uploadToken = get_upload_token_pri();
-        // logger.info(uploadToken);
-        res.send(uploadToken);
-    });
+    // });
 
 
-    app.get('/api/upload_token_pub', (req, res) => {
-        logger.info('request upload token' + req);
-        var uploadToken = get_upload_token_pub();
-        // logger.info(uploadToken);
-        res.send(uploadToken);
-    });
+
+    // app.get('/api/upload_token_pri', (req, res) => {
+    //     logger.info('request upload token' + req);
+    //     var uploadToken = get_upload_token_pri();
+    //     // logger.info(uploadToken);
+    //     res.send(uploadToken);
+    // });
 
 
-    app.get('/api/download_token_pub', (req, res) => {
-        logger.info('request download token pub ' + req);
-        var key = req.query.key;
-        var downloadToken = get_download_token_pub(key);
-        // logger.info(downloadToken);
-        res.send(downloadToken);
-    });
+    // app.get('/api/upload_token_pub', (req, res) => {
+    //     logger.info('request upload token' + req);
+    //     var uploadToken = get_upload_token_pub();
+    //     // logger.info(uploadToken);
+    //     res.send(uploadToken);
+    // });
 
-    app.get('/api/download_token_pri', (req, res) => {
-        logger.info('request download token pri ' + req);
-        var key = req.query.key;
-        var downloadToken = get_download_token_pri(key);
-        // logger.info(downloadToken);
-        res.send(downloadToken);
-    });
+
+    // app.get('/api/download_token_pub', (req, res) => {
+    //     logger.info('request download token pub ' + req);
+    //     var key = req.query.key;
+    //     var downloadToken = get_download_token_pub(key);
+    //     // logger.info(downloadToken);
+    //     res.send(downloadToken);
+    // });
+
+    // app.get('/api/download_token_pri', (req, res) => {
+    //     logger.info('request download token pri ' + req);
+    //     var key = req.query.key;
+    //     var downloadToken = get_download_token_pri(key);
+    //     // logger.info(downloadToken);
+    //     res.send(downloadToken);
+    // });
 
 
 

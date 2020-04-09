@@ -32,11 +32,9 @@ const dehashhash = (rawhash) => {
     var decodedHex = hashids.decodeHex(rawhash);
     // console.log(decodedHex); // '48656c6c6f20576f726c64'
 
-    var string = Buffer(decodedHex, 'hex').toString('utf8');
+    var string = Buffer.from(decodedHex, 'hex').toString('utf8');
     // console.log(string); // 'Hello World'
     return string;
-
-
 }
 const make_uuid_by_openid = (raw) => {
     return md5(raw).substring(8, 24);
@@ -55,3 +53,4 @@ const sha1 = (str) => {
 exports.make_uuid_by_openid = make_uuid_by_openid;
 exports.sha1 = sha1;
 exports.hashhash = hashhash;
+exports.dehashhash = dehashhash;

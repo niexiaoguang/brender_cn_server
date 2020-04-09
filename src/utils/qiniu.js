@@ -19,16 +19,20 @@ const options_pri = {
 const bucket_pub = 'brender-pub';
 const options_pub = {
     scope: bucket_pub,
+    expires: 10 // very short timeout for control upload
 };
 
 const {
     hashhash
 } = require('./crypt.js');
 
+const {
+    dehashhash
+} = require('./crypt.js');
 
 const handle_pre_upload = (uuid, hash, res) => {
-    var hash = hashhash(hash); // conver hash TODO
-    var key = uuid + '-' + hash; // hanlde hash to file key name TODO
+    var hash1 = hashhash(hash);
+    var key = uuid + '-' + hash1; // hanlde hash to file key name TODO
     var bucket = 'brender-pub'; // TODO
     var config = new qiniu.conf.Config();
     //config.useHttpsDomain = true;

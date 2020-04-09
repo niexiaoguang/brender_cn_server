@@ -31,6 +31,12 @@ const {
     sha1
 } = require('./utils/crypt.js');
 
+// qiniu api
+// ========================================================
+const {
+    handle_write_data_info_file_pub
+} = require('./utils/qiniu.js');
+
 const {
     get_upload_token_pri
 } = require('./utils/qiniu.js');
@@ -57,6 +63,7 @@ const {
     handle_get_batch_file_hash
 } = require('./utils/qiniu.js');
 
+// ========================================================
 
 
 
@@ -117,6 +124,16 @@ app.use(bodyParser.json());
 
 
 const start = () => {
+    app.post('/api/test_write_data_into_file', (req, res) => {
+        var data = req.body;
+        logger.info(data);
+        handle_write_data_info_file_pub(data, res);
+    });
+
+
+
+
+
     // need check head =========  merge with org files TODO
     app.get('/api/file_hash', (req, res) => {
         logger.info('request file hash' + req);

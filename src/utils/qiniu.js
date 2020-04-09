@@ -21,6 +21,52 @@ const options_pub = {
     scope: bucket_pub,
 };
 
+// handle result TODO
+const handle_write_data_info_file_pub = (data, res) => {
+
+    // var uploadToken;
+    // if (bucket === bucket_pri) {
+    //     uploadToken = get_upload_token_pri();
+    // } else if (bucket === bucket_pub) {
+    //     uploadToken = get_download_token_pub();
+    // } else {
+    //     res.send('error');
+    // }
+
+    // only for bub for test TODO
+    const putPolicy = new qiniu.rs.PutPolicy(options_pub);
+
+    var uploadToken = putPolicy.uploadToken(mac);
+
+    var config = new qiniu.conf.Config();
+    var formUploader = new qiniu.form_up.FormUploader(config);
+    var putExtra = new qiniu.form_up.PutExtra();
+
+    var key = 'testwriteintofiles.json';
+    data = JSON.stringify(data);
+
+    formUploader.put(uploadToken, key, data, putExtra, function(respErr,
+        respBody, respInfo) {
+        if (respErr) {
+            throw respErr;
+            res.send('error');
+
+        }
+        if (respInfo.statusCode == 200) {
+            logger.info(respBody);
+            var resp = respBody;
+            res.send(JSON.stringify(resp));
+
+        } else {
+            logger.info(respInfo.statusCode);
+            logger.info(respBody);
+            res.send('error');
+
+        }
+    });
+}
+
+
 const handle_get_batch_file_hash = (bucket, keys, res) => {
 
     var statOperations = [];
@@ -148,3 +194,4 @@ exports.get_download_token_pub = get_download_token_pub;
 exports.get_download_token_pri = get_download_token_pri;
 exports.handle_get_file_hash = handle_get_file_hash;
 exports.handle_get_batch_file_hash = handle_get_batch_file_hash;
+exports.handle_write_data_info_file_pub = handle_write_data_info_file_pub;

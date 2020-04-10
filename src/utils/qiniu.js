@@ -32,6 +32,7 @@ const {
 
 const handle_pre_upload = (uuid, hash, res) => {
     var hash1 = hashhash(hash);
+    hash1 = hash;
     var key = uuid + '-' + hash1; // hanlde hash to file key name TODO
     var bucket = 'brender-pub'; // TODO
     var config = new qiniu.conf.Config();
@@ -63,17 +64,16 @@ const handle_pre_upload = (uuid, hash, res) => {
 
                 // return respBody.hash;
                 if (respBody.hash === hash) {
-                    const putPolicy = new qiniu.rs.PutPolicy(options_pub);
 
-                    var uploadToken = putPolicy.uploadToken(mac);
                     var resp = {};
+
+
                     resp[myconfig.httpRespAttrStatus] = myconfig.httpRespOk;
                     resp[myconfig.httpRespAttrInfo] = myconfig.httpRespNo;
                     resp[myconfig.httpReqAttrUuid] = uuid;
-                    resp[myconfig.httpRespAttrHash] = hash;
-                    resp[myconfig.httpRespAttrToken] = uploadToken;
+                    resp[myconfig.httpReqAttrHash] = hash;
+                    resp[myconfig.httpRespAttrToken] = myconfig.httpRespNo;
                     res.send(JSON.stringify(resp));
-
 
                 } else {
 
@@ -88,15 +88,17 @@ const handle_pre_upload = (uuid, hash, res) => {
                 logger.error(respInfo.statusCode);
                 logger.error(respBody.error);
                 // return 'error';
+                const putPolicy = new qiniu.rs.PutPolicy(options_pub);
+
+                var uploadToken = putPolicy.uploadToken(mac);
                 var resp = {};
-
-
                 resp[myconfig.httpRespAttrStatus] = myconfig.httpRespOk;
                 resp[myconfig.httpRespAttrInfo] = myconfig.httpRespNo;
                 resp[myconfig.httpReqAttrUuid] = uuid;
-                resp[myconfig.httpReqAttrHash] = hash;
-                resp[myconfig.httpRespAttrToken] = myconfig.httpRespNo;
+                resp[myconfig.httpRespAttrHash] = hash;
+                resp[myconfig.httpRespAttrToken] = uploadToken;
                 res.send(JSON.stringify(resp));
+
             }
         }
     });
@@ -124,7 +126,7 @@ const handle_write_data_info_file_pub = (data, res) => {
     var putExtra = new qiniu.form_up.PutExtra();
 
     var key = 'testwriteintofiles.json';
-    data = JSON.stringify(data);
+    logger.inf('data need to handle' + data);
 
     formUploader.put(uploadToken, key, data, putExtra, function(respErr,
         respBody, respInfo) {

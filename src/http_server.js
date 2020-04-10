@@ -133,6 +133,7 @@ const start = () => {
         var data = req.body;
         logger.info(data);
         handle_write_data_info_file_pub(data, res);
+
     });
 
 

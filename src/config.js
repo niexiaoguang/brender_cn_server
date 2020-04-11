@@ -16,6 +16,8 @@ const httpReqAttrRelpath = 'relpath';
 const ErrorCodeHashNotMatch = 4000;
 const ErrorQiniuTokanRead = 4001;
 
+const fileKeySep = '-';
+
 exports.httpRespAttrHash = httpRespAttrHash;
 exports.httpRespAttrToken = httpRespAttrToken;
 exports.httpRespOk = httpRespOk;
@@ -31,5 +33,6 @@ exports.httpReqAttrFilekey = httpReqAttrFilekey;
 exports.httpReqAttrAbspath = httpReqAttrAbspath;
 exports.httpReqAttrRelpath = httpReqAttrRelpath;
 
-exports.ErrorCodeHashNotMatch = ErrorCodeHashNotMatch
-exports.ErrorQiniuTokanRead = ErrorQiniuTokanRead
+exports.ErrorCodeHashNotMatch = ErrorCodeHashNotMatch;
+exports.ErrorQiniuTokanRead = ErrorQiniuTokanRead;
+exports.fileKeySep = fileKeySep;

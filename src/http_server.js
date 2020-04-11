@@ -140,8 +140,9 @@ const start = () => {
     app.get('/api/pre_upload', (req, res) => {
         logger.info('pre upload req for upload token ' + req);
         var uuid = req.query.uuid;
+        var fuid = req.query.fuid;
         var hash = req.query.hash;
-        handle_pre_upload(uuid, hash, res);
+        handle_pre_upload(uuid, fuid, hash, res);
     });
 
 

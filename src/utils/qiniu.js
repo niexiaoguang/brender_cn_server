@@ -30,78 +30,211 @@ const {
     dehashhash
 } = require('./crypt.js');
 
-const handle_pre_upload = (uuid, hash, res) => {
-    var hash1 = hashhash(hash);
-    hash1 = hash;
-    var key = uuid + '-' + hash1; // hanlde hash to file key name TODO
+const handle_pre_upload = (uuid, fuid, hash, res) => {
+    // var hash1 = hashhash(hash);
+    var hash1 = hash;
+    var uuidHashFileKey = uuid + myconfig.fileKeySep + hash1; // hanlde hash to file key name TODO
+    var uuidHashFuidFileKey = uuidHashFileKey + myconfig.fileKeySep + fuid;
+    var keys = [uuidHashFileKey, uuidHashFuidFileKey];
     var bucket = 'brender-pub'; // TODO
     var config = new qiniu.conf.Config();
     //config.useHttpsDomain = true;
     config.zone = qiniu.zone.Zone_z0;
+
+    var statOperations = [];
+
+    for (let index = 0; index < keys.length; index++) {
+        const element = keys[index];
+        statOperations.push(qiniu.rs.statOp(bucket, element));
+
+    }
     var bucketManager = new qiniu.rs.BucketManager(mac, config);
 
-
-    bucketManager.stat(bucket, key, function(err, respBody, respInfo) {
+    var result = [];
+    bucketManager.batch(statOperations, function(err, respBody, respInfo) {
         if (err) {
-
             logger.error(err);
-            //   return 'error';
-
+            //throw err;
             var resp = {};
             resp[myconfig.httpRespAttrStatus] = myconfig.httpRespError;
             resp[myconfig.httpRespAttrInfo] = myconfig.httpRespNo;
             res.send(JSON.stringify(resp)); // handle error TODO
 
-
-            //throw err;
         } else {
-            if (respInfo.statusCode == 200) {
-                logger.info([key, respBody.hash]);
-                // logger.info(respBody.fsize);
-                // logger.info(respBody.mimeType);
-                // logger.info(respBody.putTime);
-                // logger.info(respBody.type);
 
-                // return respBody.hash;
-                if (respBody.hash === hash) {
+            // 200 is success, 298 is part success
+            logger.info(respInfo);
+            if (parseInt(respInfo.statusCode / 100) == 2) {
+                respBody.forEach(function(item) {
+                    if (item.code == 200) {
+                        logger.info(item.data.fsize + "\t" + item.data.hash + "\t" +
+                            item.data.mimeType + "\t" + item.data.putTime + "\t" +
+                            item.data.type);
 
+                        result.push(item.data.hash);
+
+
+                    } else {
+                        logger.info(item.code + "\t" + item.data.error);
+                    }
+                });
+
+                logger.info('query hash for files result : ' + result.length);
+
+
+
+                if (result.length == 2) {
+                    // uuid-hash and uuid-hash-fuid both exists,do nothing
                     var resp = {};
-
-
                     resp[myconfig.httpRespAttrStatus] = myconfig.httpRespOk;
                     resp[myconfig.httpRespAttrInfo] = myconfig.httpRespNo;
                     resp[myconfig.httpReqAttrUuid] = uuid;
+                    resp[myconfig.httpReqAttrFuid] = fuid;
                     resp[myconfig.httpReqAttrHash] = hash;
                     resp[myconfig.httpRespAttrToken] = myconfig.httpRespNo;
                     res.send(JSON.stringify(resp));
 
-                } else {
-
-                    var resp = {};
-                    resp[myconfig.httpRespAttrStatus] = myconfig.httpRespError;
-                    resp[myconfig.httpRespAttrInfo] = myconfig.ErrorQiniuTokanRead;
-                    res.send(JSON.stringify(resp));
 
                 }
 
+                if (result.length == 1 && result[0] === hash) {
+
+                    logger.info('uuid-hash exist but uuid-hash-fuid : ' + result);
+                    // uuid-hash exist but uuid-hash-fuid
+                    const putPolicy = new qiniu.rs.PutPolicy(options_pub);
+
+                    var uploadToken = putPolicy.uploadToken(mac);
+
+                    var config = new qiniu.conf.Config();
+                    var formUploader = new qiniu.form_up.FormUploader(config);
+                    var putExtra = new qiniu.form_up.PutExtra();
+
+                    var key = uuidHashFuidFileKey;
+                    logger.info('direct write file with key : ' + uuidHashFuidFileKey);
+                    var data = uuidHashFileKey;
+                    formUploader.put(uploadToken, key, data, putExtra, function(respErr,
+                        respBody, respInfo) {
+                        if (respErr) {
+                            throw respErr;
+                            logger.error(respErr);
+                            var resp = {};
+                            resp[myconfig.httpRespAttrStatus] = myconfig.httpRespError;
+                            resp[myconfig.httpRespAttrInfo] = myconfig.httpRespNo;
+                            res.send(JSON.stringify(resp)); // handle error TODO
+                        }
+                        if (respInfo.statusCode == 200) {
+                            logger.info(respBody);
+                            var resp = {};
+                            resp[myconfig.httpRespAttrStatus] = myconfig.httpRespOk;
+                            resp[myconfig.httpRespAttrInfo] = myconfig.httpRespNo;
+                            resp[myconfig.httpReqAttrUuid] = uuid;
+                            resp[myconfig.httpReqAttrFuid] = fuid;
+                            resp[myconfig.httpReqAttrHash] = hash;
+                            resp[myconfig.httpRespAttrToken] = myconfig.httpRespNo;
+                            res.send(JSON.stringify(resp));
+
+
+                        } else {
+                            logger.info(respInfo.statusCode);
+                            logger.info(respBody);
+                            logger.error(respInfo);
+                            var resp = {};
+                            resp[myconfig.httpRespAttrStatus] = myconfig.httpRespError;
+                            resp[myconfig.httpRespAttrInfo] = myconfig.httpRespNo;
+                            res.send(JSON.stringify(resp)); // handle error TODO
+
+                        }
+                    });
+                }
+                if (result.length == 0) {
+                    // uuid-hash and uuid-hash-fuid bot not exist , need upload uuid-hash
+                    const putPolicy = new qiniu.rs.PutPolicy(options_pub);
+
+                    var uploadToken = putPolicy.uploadToken(mac);
+                    resp[myconfig.httpRespAttrToken] = uploadToken;
+                    res.send(JSON.stringify(resp));
+
+
+                }
+
+
             } else {
                 logger.error(respInfo.statusCode);
-                logger.error(respBody.error);
-                // return 'error';
-                const putPolicy = new qiniu.rs.PutPolicy(options_pub);
-
-                var uploadToken = putPolicy.uploadToken(mac);
+                logger.error(respBody);
                 var resp = {};
-                resp[myconfig.httpRespAttrStatus] = myconfig.httpRespOk;
+                resp[myconfig.httpRespAttrStatus] = myconfig.httpRespError;
                 resp[myconfig.httpRespAttrInfo] = myconfig.httpRespNo;
-                resp[myconfig.httpReqAttrUuid] = uuid;
-                resp[myconfig.httpRespAttrHash] = hash;
-                resp[myconfig.httpRespAttrToken] = uploadToken;
-                res.send(JSON.stringify(resp));
-
+                res.send(JSON.stringify(resp)); // handle error TODO
             }
         }
     });
+
+
+
+
+
+
+    // bucketManager.stat(bucket, key, function(err, respBody, respInfo) {
+    //     if (err) {
+
+    //         logger.error(err);
+    //         //   return 'error';
+
+    //         var resp = {};
+    //         resp[myconfig.httpRespAttrStatus] = myconfig.httpRespError;
+    //         resp[myconfig.httpRespAttrInfo] = myconfig.httpRespNo;
+    //         res.send(JSON.stringify(resp)); // handle error TODO
+
+
+    //         //throw err;
+    //     } else {
+    //         if (respInfo.statusCode == 200) {
+    //             logger.info([key, respBody.hash]);
+    //             // logger.info(respBody.fsize);
+    //             // logger.info(respBody.mimeType);
+    //             // logger.info(respBody.putTime);
+    //             // logger.info(respBody.type);
+
+    //             // return respBody.hash;
+    //             if (respBody.hash === hash) {
+
+    //                 var resp = {};
+
+
+    //                 resp[myconfig.httpRespAttrStatus] = myconfig.httpRespOk;
+    //                 resp[myconfig.httpRespAttrInfo] = myconfig.httpRespNo;
+    //                 resp[myconfig.httpReqAttrUuid] = uuid;
+    //                 resp[myconfig.httpReqAttrHash] = hash;
+    //                 resp[myconfig.httpRespAttrToken] = myconfig.httpRespNo;
+    //                 res.send(JSON.stringify(resp));
+
+    //             } else {
+
+    //                 var resp = {};
+    //                 resp[myconfig.httpRespAttrStatus] = myconfig.httpRespError;
+    //                 resp[myconfig.httpRespAttrInfo] = myconfig.ErrorQiniuTokanRead;
+    //                 res.send(JSON.stringify(resp));
+
+    //             }
+
+    //         } else {
+    //             logger.error(respInfo.statusCode);
+    //             logger.error(respBody.error);
+    //             // return 'error';
+    //             const putPolicy = new qiniu.rs.PutPolicy(options_pub);
+
+    //             var uploadToken = putPolicy.uploadToken(mac);
+    //             var resp = {};
+    //             resp[myconfig.httpRespAttrStatus] = myconfig.httpRespOk;
+    //             resp[myconfig.httpRespAttrInfo] = myconfig.httpRespNo;
+    //             resp[myconfig.httpReqAttrUuid] = uuid;
+    //             resp[myconfig.httpRespAttrHash] = hash;
+    //             resp[myconfig.httpRespAttrToken] = uploadToken;
+    //             res.send(JSON.stringify(resp));
+
+    //         }
+    //     }
+    // });
 }
 
 // handle result TODO

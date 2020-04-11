@@ -30,6 +30,69 @@ const {
     dehashhash
 } = require('./crypt.js');
 
+const handle_fetch_with_prefix = (prefix, res) => {
+    var bucket = bucket_pub;
+    // @param options 列举操作的可选参数
+    //                prefix    列举的文件前缀
+    //                marker    上一次列举返回的位置标记，作为本次列举的起点信息
+    //                limit     每次返回的最大列举文件数量
+    //                delimiter 指定目录分隔符
+    var options = {
+        limit: 100,
+        prefix: prefix,
+    };
+
+    var config = new qiniu.conf.Config();
+    //config.useHttpsDomain = true;
+    config.zone = qiniu.zone.Zone_z0;
+    var bucketManager = new qiniu.rs.BucketManager(mac, config);
+
+    bucketManager.listPrefix(bucket, options, function(err, respBody, respInfo) {
+        if (err) {
+            logger.error(err);
+            throw err;
+            var resp = {};
+            resp[myconfig.httpRespAttrStatus] = myconfig.httpRespError;
+            resp[myconfig.httpRespAttrInfo] = myconfig.httpRespNo;
+            res.send(JSON.stringify(resp)); // handle error TODO
+
+        }
+        if (respInfo.statusCode == 200) {
+            //如果这个nextMarker不为空，那么还有未列举完毕的文件列表，下次调用listPrefix的时候，
+            //指定options里面的marker为这个值
+            var nextMarker = respBody.marker;
+            var commonPrefixes = respBody.commonPrefixes;
+            logger.info(nextMarker);
+            logger.info(commonPrefixes);
+            var items = respBody.items;
+            items.forEach(function(item) {
+                logger.info(item.key);
+                // logger.info(item.putTime);
+                logger.info(item.hash);
+                // logger.info(item.fsize);
+                // logger.info(item.mimeType);
+                // logger.info(item.endUser);
+                // logger.info(item.type);
+            });
+
+            var resp = {};
+            resp[myconfig.httpRespAttrStatus] = myconfig.httpRespOk;
+            resp[myconfig.httpRespAttrInfo] = items;
+            res.send(JSON.stringify(resp));
+
+
+        } else {
+            logger.info(respInfo.statusCode);
+            logger.info(respBody);
+            var resp = {};
+            resp[myconfig.httpRespAttrStatus] = myconfig.httpRespError;
+            resp[myconfig.httpRespAttrInfo] = myconfig.httpRespNo;
+            res.send(JSON.stringify(resp)); // handle error TODO
+        }
+    });
+}
+
+
 const handle_pre_upload = (uuid, fuid, hash, res) => {
     // var hash1 = hashhash(hash);
     var hash1 = hash;
@@ -151,6 +214,12 @@ const handle_pre_upload = (uuid, fuid, hash, res) => {
                     const putPolicy = new qiniu.rs.PutPolicy(options_pub);
 
                     var uploadToken = putPolicy.uploadToken(mac);
+                    var resp = {};
+                    resp[myconfig.httpRespAttrStatus] = myconfig.httpRespOk;
+                    resp[myconfig.httpRespAttrInfo] = myconfig.httpRespNo;
+                    resp[myconfig.httpReqAttrUuid] = uuid;
+                    resp[myconfig.httpReqAttrFuid] = fuid;
+                    resp[myconfig.httpReqAttrHash] = hash;
                     resp[myconfig.httpRespAttrToken] = uploadToken;
                     res.send(JSON.stringify(resp));
 
@@ -415,3 +484,4 @@ exports.handle_get_file_hash = handle_get_file_hash;
 exports.handle_get_batch_file_hash = handle_get_batch_file_hash;
 exports.handle_write_data_info_file_pub = handle_write_data_info_file_pub;
 exports.handle_pre_upload = handle_pre_upload;
+exports.handle_fetch_with_prefix = handle_fetch_with_prefix;

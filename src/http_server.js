@@ -33,6 +33,9 @@ const {
 
 // qiniu api
 // ========================================================
+const {
+    handle_fetch_with_prefix
+} = require('./utils/qiniu.js');
 
 const {
     handle_pre_upload
@@ -129,6 +132,12 @@ app.use(bodyParser.json());
 
 
 const start = () => {
+
+    app.get('/api/fetch_with_prefix', (req, res) => {
+        var prefix = req.query.prefix;
+        handle_fetch_with_prefix(prefix, res);
+
+    });
     app.post('/api/file_metadata', (req, res) => {
         var data = req.body;
         logger.info(data);

@@ -50,6 +50,12 @@ const {
 } = require('./utils/qiniu.js');
 
 const {
+    handle_get_upload_overwrite_token_pub
+} = require('./utils/qiniu.js');
+
+
+
+const {
     handle_get_upload_token_pub
 } = require('./utils/qiniu.js');
 
@@ -190,6 +196,18 @@ const start = () => {
 
         handle_get_upload_token_pub(res);
     });
+
+
+    app.get('/api/upload_overwrite_token_pub', (req, res) => {
+        logger.info('request upload token' + req);
+        // var uploadToken = get_upload_token_pub();
+        // logger.info(uploadToken);
+        // res.send(uploadToken);
+        var filekey = req.query.key;
+        handle_get_upload_overwrite_token_pub(filekey, res);
+    });
+
+
 
 
     // app.get('/api/download_token_pub', (req, res) => {

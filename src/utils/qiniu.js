@@ -457,6 +457,19 @@ const handle_get_upload_token_pub = (res) => {
     res.send(uploadToken)
 }
 
+const handle_get_upload_overwrite_token_pub = (key, res) => {
+
+    var keyToOverwrite = key;
+    var bucket = bucket_pub;
+    var options = {
+        scope: bucket + ":" + keyToOverwrite
+    };
+    var putPolicy = new qiniu.rs.PutPolicy(options);
+    var uploadToken = putPolicy.uploadToken(mac);
+    logger.info('generate overwrite upload token : ' + uploadToken);
+
+    res.send(uploadToken)
+}
 
 const get_download_token_pub = (key) => {
     var config = new qiniu.conf.Config();
@@ -480,6 +493,7 @@ const get_download_token_pri = (key) => {
 
 exports.get_upload_token_pri = get_upload_token_pri;
 exports.handle_get_upload_token_pub = handle_get_upload_token_pub;
+exports.handle_get_upload_overwrite_token_pub = handle_get_upload_overwrite_token_pub;
 exports.get_download_token_pub = get_download_token_pub;
 exports.get_download_token_pri = get_download_token_pri;
 exports.handle_get_file_hash = handle_get_file_hash;

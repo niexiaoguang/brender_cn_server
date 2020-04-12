@@ -448,11 +448,13 @@ const get_upload_token_pri = () => {
     return uploadToken;
 }
 
-const get_upload_token_pub = async() => {
+const handle_get_upload_token_pub = (res) => {
     const putPolicy = new qiniu.rs.PutPolicy(options_pub);
 
     var uploadToken = putPolicy.uploadToken(mac);
-    return uploadToken;
+    logger.info('generate upload token : ' + uploadToken);
+
+    res.send(uploadToken)
 }
 
 
@@ -477,7 +479,7 @@ const get_download_token_pri = (key) => {
 
 
 exports.get_upload_token_pri = get_upload_token_pri;
-exports.get_upload_token_pub = get_upload_token_pub;
+exports.handle_get_upload_token_pub = handle_get_upload_token_pub;
 exports.get_download_token_pub = get_download_token_pub;
 exports.get_download_token_pri = get_download_token_pri;
 exports.handle_get_file_hash = handle_get_file_hash;

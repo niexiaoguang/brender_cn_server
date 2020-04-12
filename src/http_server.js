@@ -50,7 +50,7 @@ const {
 } = require('./utils/qiniu.js');
 
 const {
-    get_upload_token_pub
+    handle_get_upload_token_pub
 } = require('./utils/qiniu.js');
 
 
@@ -182,12 +182,14 @@ const start = () => {
     // });
 
 
-    // app.get('/api/upload_token_pub', (req, res) => {
-    //     logger.info('request upload token' + req);
-    //     var uploadToken = get_upload_token_pub();
-    //     // logger.info(uploadToken);
-    //     res.send(uploadToken);
-    // });
+    app.get('/api/upload_token_pub', (req, res) => {
+        logger.info('request upload token' + req);
+        // var uploadToken = get_upload_token_pub();
+        // logger.info(uploadToken);
+        // res.send(uploadToken);
+
+        handle_get_upload_token_pub(res);
+    });
 
 
     // app.get('/api/download_token_pub', (req, res) => {

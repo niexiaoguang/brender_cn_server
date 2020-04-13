@@ -16,7 +16,7 @@ const httpReqAttrRelpath = 'relpath';
 const ErrorCodeHashNotMatch = 4000;
 const ErrorQiniuTokanRead = 4001;
 
-const fileKeySep = '-';
+const fileKeySep = '_';
 
 exports.httpRespAttrHash = httpRespAttrHash;
 exports.httpRespAttrToken = httpRespAttrToken;

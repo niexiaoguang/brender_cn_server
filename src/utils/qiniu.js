@@ -19,7 +19,7 @@ const options_pri = {
 const bucket_pub = 'brender-pub';
 const options_pub = {
     scope: bucket_pub,
-    expires: 10 // very short timeout for control upload
+    expires: 3600 // very short timeout for control upload,for big file need big number for stream upload
 };
 
 const {

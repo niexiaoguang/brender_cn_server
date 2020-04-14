@@ -39,6 +39,7 @@ const handle_new_uploaded_file = (cb_data, res) => {
     logger.info(cb_data.hash);
     logger.info(cb_data.key);
     logger.info(cb_data.fuid);
+    logger.info(cb_data.uuid);
 
     // send data let client to handle
     res.send(cb_data);
@@ -46,11 +47,13 @@ const handle_new_uploaded_file = (cb_data, res) => {
 
 
 const handle_get_upload_token_with_callback = (req, res) => {
+    var uuid = req.query.uuid;
     var fuid = req.query.fuid;
     logger.info('get token with cb with fuid : ' + fuid);
     var uploadCallbackUrl = 'https://brender.cn/api/upload_callback';
 
-    var callbackBody = '{"key":"$(key)","hash":"$(etag)","fsize":$(fsize),"bucket":"$(bucket)","fuid":"' + fuid + '"}';
+    var callbackBody = '{"key":"$(key)","hash":"$(etag)","fsize":$(fsize),"bucket":"$(bucket)","fuid":"' + fuid + '",' + '"uuid":"' + uuid + '"}';
+
     logger.info('cutome cb : ' + callbackBody);
     var options = {
         scope: bucket_pub,

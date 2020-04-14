@@ -42,6 +42,11 @@ const {
 } = require('./utils/qiniu.js');
 
 const {
+    handle_new_uploaded_file
+} = require('./utils/qiniu.js');
+
+
+const {
     handle_write_data_info_file_pub
 } = require('./utils/qiniu.js');
 
@@ -53,6 +58,9 @@ const {
     handle_get_upload_overwrite_token_pub
 } = require('./utils/qiniu.js');
 
+const {
+    handle_get_upload_token_with_callback
+} = require('./utils/qiniu.js');
 
 
 const {
@@ -144,6 +152,7 @@ const start = () => {
         handle_fetch_with_prefix(prefix, res);
 
     });
+
     app.post('/api/file_metadata', (req, res) => {
         var data = req.body;
         logger.info(data);
@@ -161,6 +170,19 @@ const start = () => {
     });
 
 
+    app.post('/api/upload_callback', (req, res) => {
+
+        handle_new_uploaded_file(req.body, res);
+    });
+
+
+
+    app.get('/api/upload_token_with_callback', (req, res) => {
+        logger.info('get upload token with callback' + req);
+
+        handle_get_upload_token_with_callback(req, res);
+
+    });
     // need check head =========  merge with org files TODO
     // app.get('/api/file_hash', (req, res) => {
     //     logger.info('request file hash' + req);

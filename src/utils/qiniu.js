@@ -30,6 +30,42 @@ const {
     dehashhash
 } = require('./crypt.js');
 
+
+
+const handle_new_uploaded_file = (cb_data, res) => {
+
+    logger.info('callback post req ' + cb_data.bucket);
+    logger.info(cb_data.fsize);
+    logger.info(cb_data.hash);
+    logger.info(cb_data.key);
+    logger.info(cb_data.fuid);
+
+    // send data let client to handle
+    res.send(cb_data);
+}
+
+
+const handle_get_upload_token_with_callback = (req, res) => {
+    var fuid = req.query.fuid;
+    logger.info('get token with cb with fuid : ' + fuid);
+    var uploadCallbackUrl = 'https://brender.cn/api/upload_callback';
+
+    var callbackBody = '{"key":"$(key)","hash":"$(etag)","fsize":$(fsize),"bucket":"$(bucket)","fuid":"' + fuid + '"}';
+    logger.info('cutome cb : ' + callbackBody);
+    var options = {
+        scope: bucket_pub,
+        callbackUrl: uploadCallbackUrl,
+        // callbackBody: '{"key":"$(key)","hash":"$(etag)","fsize":$(fsize),"bucket":"$(bucket)","name":"$(x:name)"}',
+        callbackBody: callbackBody,
+        callbackBodyType: 'application/json'
+    }
+    var putPolicy = new qiniu.rs.PutPolicy(options);
+    var uploadToken = putPolicy.uploadToken(mac);
+    res.send(uploadToken);
+}
+
+
+
 const handle_fetch_with_prefix = (prefix, res) => {
     var bucket = bucket_pub;
     // @param options 列举操作的可选参数
@@ -238,72 +274,6 @@ const handle_pre_upload = (uuid, fuid, hash, res) => {
         }
     });
 
-
-
-
-
-
-    // bucketManager.stat(bucket, key, function(err, respBody, respInfo) {
-    //     if (err) {
-
-    //         logger.error(err);
-    //         //   return 'error';
-
-    //         var resp = {};
-    //         resp[myconfig.httpRespAttrStatus] = myconfig.httpRespError;
-    //         resp[myconfig.httpRespAttrInfo] = myconfig.httpRespNo;
-    //         res.send(JSON.stringify(resp)); // handle error TODO
-
-
-    //         //throw err;
-    //     } else {
-    //         if (respInfo.statusCode == 200) {
-    //             logger.info([key, respBody.hash]);
-    //             // logger.info(respBody.fsize);
-    //             // logger.info(respBody.mimeType);
-    //             // logger.info(respBody.putTime);
-    //             // logger.info(respBody.type);
-
-    //             // return respBody.hash;
-    //             if (respBody.hash === hash) {
-
-    //                 var resp = {};
-
-
-    //                 resp[myconfig.httpRespAttrStatus] = myconfig.httpRespOk;
-    //                 resp[myconfig.httpRespAttrInfo] = myconfig.httpRespNo;
-    //                 resp[myconfig.httpReqAttrUuid] = uuid;
-    //                 resp[myconfig.httpReqAttrHash] = hash;
-    //                 resp[myconfig.httpRespAttrToken] = myconfig.httpRespNo;
-    //                 res.send(JSON.stringify(resp));
-
-    //             } else {
-
-    //                 var resp = {};
-    //                 resp[myconfig.httpRespAttrStatus] = myconfig.httpRespError;
-    //                 resp[myconfig.httpRespAttrInfo] = myconfig.ErrorQiniuTokanRead;
-    //                 res.send(JSON.stringify(resp));
-
-    //             }
-
-    //         } else {
-    //             logger.error(respInfo.statusCode);
-    //             logger.error(respBody.error);
-    //             // return 'error';
-    //             const putPolicy = new qiniu.rs.PutPolicy(options_pub);
-
-    //             var uploadToken = putPolicy.uploadToken(mac);
-    //             var resp = {};
-    //             resp[myconfig.httpRespAttrStatus] = myconfig.httpRespOk;
-    //             resp[myconfig.httpRespAttrInfo] = myconfig.httpRespNo;
-    //             resp[myconfig.httpReqAttrUuid] = uuid;
-    //             resp[myconfig.httpRespAttrHash] = hash;
-    //             resp[myconfig.httpRespAttrToken] = uploadToken;
-    //             res.send(JSON.stringify(resp));
-
-    //         }
-    //     }
-    // });
 }
 
 // handle result TODO
@@ -490,7 +460,8 @@ const get_download_token_pri = (key) => {
 }
 
 
-
+exports.handle_new_uploaded_file = handle_new_uploaded_file;
+exports.handle_get_upload_token_with_callback = handle_get_upload_token_with_callback;
 exports.get_upload_token_pri = get_upload_token_pri;
 exports.handle_get_upload_token_pub = handle_get_upload_token_pub;
 exports.handle_get_upload_overwrite_token_pub = handle_get_upload_overwrite_token_pub;

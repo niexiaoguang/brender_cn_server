@@ -39,6 +39,9 @@ const {
 } = require('./utils/qiniu.js');
 
 
+const {
+    handle_new_uploaded_file
+} = require('./utils/qiniu.js');
 
 // ========================================================
 
@@ -120,6 +123,11 @@ const start = () => {
     });
 
 
+
+    app.post('/api/upload_callback', (req, res) => {
+
+        handle_new_uploaded_file(req.body, res);
+    });
 
 
 

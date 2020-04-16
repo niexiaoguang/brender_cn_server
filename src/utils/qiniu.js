@@ -10,7 +10,6 @@ const accessKey = 'SGruygxQyj9pyA4v0x1wqAjtLlzov1IoaA3m0F2N';
 const secretKey = 'd8ldTmV3_XX-9Aysd8ruh0EUPWjv8jIpGgORVvUk';
 
 const mac = new qiniu.auth.digest.Mac(accessKey, secretKey);
-
 const bucket_pri = 'brender';
 const options_pri = {
     scope: bucket_pri,
@@ -32,18 +31,115 @@ const {
 
 
 
-
-const handle_req_upload_token = (req, res) => {
-    var resp = 'ok'
-    var reqData = req.body;
-    var mark = req.mark;
-    logger.info('handle req 2 ' + reqData);
-    logger.info('handle req 2 mark ' + mark);
-
-    res.send(resp);
+const generate_filekey_by_hash = (hash, uuid, fuid) => {
+    return hash;
 }
 
+// -------------------------------------------------------------------------------------------
 
+
+const handle_req_upload_token = (req, res) => {
+    var uuid = req.body.uuid;
+    var fuid = req.body.fuid;
+    var hashes = req.body.hash;
+    var resp = {};
+
+
+    var statOperations = [];
+
+    for (let index = 0; index < hashes.length; index++) {
+        const element = generate_filekey_by_hash(hashes[index], uuid, fuid);
+        statOperations.push(qiniu.rs.statOp(bucket_pub, element));
+
+    }
+
+    var config = new qiniu.conf.Config();
+    //config.useHttpsDomain = true;
+    config.zone = qiniu.zone.Zone_z0;
+    var bucketManager = new qiniu.rs.BucketManager(mac, config);
+
+    bucketManager.batch(statOperations, function(err, respBody, respInfo) {
+        if (err) {
+            //throw err;
+            logger.error(err);
+
+            resp[myconfig.httpRespAttrStatus] = myconfig.httpRespError;
+            resp[myconfig.httpRespAttrInfo] = myconfig.ErrorCodeQiniuReq;
+            resp[myconfig.httpReqAttrUuid] = uuid;
+            resp[myconfig.httpReqAttrFuid] = fuid;
+
+            res.send(JSON.stringify(resp));
+        } else {
+
+            // 200 is success, 298 is part success
+            logger.info(respInfo);
+            var qRes = [];
+
+            if (parseInt(respInfo.statusCode / 100) == 2) {
+                respBody.forEach(function(item) {
+                    if (item.code == 200) {
+                        logger.info(item.data.fsize + "\t" + item.data.hash + "\t" +
+                            item.data.mimeType + "\t" + item.data.putTime + "\t" +
+                            item.data.type);
+
+                        qRes.push(item.data.hash);
+
+
+                    } else {
+                        logger.info(item.code + "\t" + item.data.error);
+                    }
+                });
+
+                // minus qRes from hashesh
+                qRes = hashes.filter(n => !qRes.includes(n));
+
+
+                // generate token to response
+                logger.info('get token with cb with uuid : ' + uuid);
+                logger.info('get token with cb with fuid : ' + fuid);
+                var uploadCallbackUrl = 'https://brender.cn/api/upload_callback';
+
+                var callbackBody = '{"key":"$(key)","hash":"$(etag)","fsize":$(fsize),"bucket":"$(bucket)","fuid":"' + fuid + '",' + '"uuid":"' + uuid + '"}';
+
+                logger.info('cutome cb : ' + callbackBody);
+                var options = {
+                    scope: bucket_pub,
+                    callbackUrl: uploadCallbackUrl,
+                    // callbackBody: '{"key":"$(key)","hash":"$(etag)","fsize":$(fsize),"bucket":"$(bucket)","name":"$(x:name)"}',
+                    callbackBody: callbackBody,
+                    callbackBodyType: 'application/json'
+                };
+
+                var putPolicy = new qiniu.rs.PutPolicy(options);
+                var uploadToken = putPolicy.uploadToken(mac);
+
+
+
+                resp[myconfig.httpRespAttrStatus] = myconfig.httpRespOk;
+                resp[myconfig.httpRespAttrInfo] = qRes;
+                resp[myconfig.httpReqAttrUuid] = uuid;
+                resp[myconfig.httpReqAttrFuid] = fuid;
+                resp[myconfig.httpRespAttrToken] = uploadToken;
+
+                res.send(JSON.stringify(resp));
+
+            } else {
+
+
+                resp[myconfig.httpRespAttrStatus] = myconfig.httpRespOk;
+                resp[myconfig.httpRespAttrInfo] = myconfig.ErrorCodeQiniuFileStat;
+                resp[myconfig.httpReqAttrUuid] = uuid;
+                resp[myconfig.httpReqAttrFuid] = fuid;
+
+                res.send(JSON.stringify(resp));
+            }
+        }
+    });
+
+
+}
+
+// -------------------------------------------------------------------------------------------
 const handle_new_uploaded_file = (cb_data, res) => {
 
     logger.info('callback post req ' + cb_data.bucket);
@@ -187,8 +283,7 @@ const get_download_token_pri = (key) => {
 }
 
 
-// exports.handle_new_uploaded_file = handle_new_uploaded_file;
-// exports.handle_get_upload_token_with_callback = handle_get_upload_token_with_callback;
+exports.handle_new_uploaded_file = handle_new_uploaded_file;
 // exports.handle_get_file_hash = handle_get_file_hash;
 
 exports.handle_req_upload_token = handle_req_upload_token;

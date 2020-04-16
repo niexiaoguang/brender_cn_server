@@ -14,7 +14,9 @@ const httpReqAttrAbspath = 'abspath';
 const httpReqAttrRelpath = 'relpath';
 
 const ErrorCodeHashNotMatch = 4000;
-const ErrorQiniuTokanRead = 4001;
+const ErrorCodeQiniuTokanRead = 4001;
+const ErrorCodeQiniuReq = 4002;
+const ErrorCodeQiniuFileStat = 4004;
 
 const fileKeySep = '_';
 
@@ -34,5 +36,9 @@ exports.httpReqAttrAbspath = httpReqAttrAbspath;
 exports.httpReqAttrRelpath = httpReqAttrRelpath;
 
 exports.ErrorCodeHashNotMatch = ErrorCodeHashNotMatch;
-exports.ErrorQiniuTokanRead = ErrorQiniuTokanRead;
+exports.ErrorCodeQiniuTokanRead = ErrorCodeQiniuTokanRead;
+exports.ErrorCodeQiniuReq = ErrorCodeQiniuReq;
+exports.ErrorCodeQiniuFileStat = ErrorCodeQiniuFileStat;
+
+
 exports.fileKeySep = fileKeySep;

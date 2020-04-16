@@ -31,59 +31,14 @@ const {
     sha1
 } = require('./utils/crypt.js');
 
+
 // qiniu api
 // ========================================================
 const {
-    handle_fetch_with_prefix
-} = require('./utils/qiniu.js');
-
-const {
-    handle_pre_upload
-} = require('./utils/qiniu.js');
-
-const {
-    handle_new_uploaded_file
+    handle_req_upload_token
 } = require('./utils/qiniu.js');
 
 
-const {
-    handle_write_data_info_file_pub
-} = require('./utils/qiniu.js');
-
-const {
-    get_upload_token_pri
-} = require('./utils/qiniu.js');
-
-const {
-    handle_get_upload_overwrite_token_pub
-} = require('./utils/qiniu.js');
-
-const {
-    handle_get_upload_token_with_callback
-} = require('./utils/qiniu.js');
-
-
-const {
-    handle_get_upload_token_pub
-} = require('./utils/qiniu.js');
-
-
-const {
-    get_download_token_pub
-} = require('./utils/qiniu.js');
-
-const {
-    get_download_token_pri
-} = require('./utils/qiniu.js');
-
-const {
-    handle_get_file_hash
-} = require('./utils/qiniu.js');
-
-
-const {
-    handle_get_batch_file_hash
-} = require('./utils/qiniu.js');
 
 // ========================================================
 
@@ -147,108 +102,9 @@ app.use(bodyParser.json());
 
 const start = () => {
 
-    app.get('/api/fetch_with_prefix', (req, res) => {
-        var prefix = req.query.prefix;
-        handle_fetch_with_prefix(prefix, res);
-
-    });
-
-    app.post('/api/file_metadata', (req, res) => {
-        var data = req.body;
-        logger.info(data);
-        handle_write_data_info_file_pub(data, res);
-
-    });
 
 
-    app.get('/api/pre_upload', (req, res) => {
-        logger.info('pre upload req for upload token ' + req);
-        var uuid = req.query.uuid;
-        var fuid = req.query.fuid;
-        var hash = req.query.hash;
-        handle_pre_upload(uuid, fuid, hash, res);
-    });
-
-
-    app.post('/api/upload_callback', (req, res) => {
-
-        handle_new_uploaded_file(req.body, res);
-    });
-
-
-
-    app.get('/api/upload_token_with_callback', (req, res) => {
-        logger.info('get upload token with callback' + req);
-
-        handle_get_upload_token_with_callback(req, res);
-
-    });
-    // need check head =========  merge with org files TODO
-    // app.get('/api/file_hash', (req, res) => {
-    //     logger.info('request file hash' + req);
-    //     var bucket = req.query.bucket;
-    //     var key = req.query.key;
-    //     handle_get_file_hash(bucket, key, res);
-
-    // });
-
-    // app.post('/api/batch_file_hash', (req, res) => {
-    //     logger.info('request a batch file hash' + req);
-    //     var bucket = req.body.bucket;
-    //     var keys = req.body.keys;
-    //     handle_get_batch_file_hash(bucket, keys, res);
-
-    // });
-
-
-
-    // app.get('/api/upload_token_pri', (req, res) => {
-    //     logger.info('request upload token' + req);
-    //     var uploadToken = get_upload_token_pri();
-    //     // logger.info(uploadToken);
-    //     res.send(uploadToken);
-    // });
-
-
-    app.get('/api/upload_token_pub', (req, res) => {
-        logger.info('request upload token' + req);
-        // var uploadToken = get_upload_token_pub();
-        // logger.info(uploadToken);
-        // res.send(uploadToken);
-
-        handle_get_upload_token_pub(res);
-    });
-
-
-    app.get('/api/upload_overwrite_token_pub', (req, res) => {
-        logger.info('request upload token' + req);
-        // var uploadToken = get_upload_token_pub();
-        // logger.info(uploadToken);
-        // res.send(uploadToken);
-        var filekey = req.query.key;
-        handle_get_upload_overwrite_token_pub(filekey, res);
-    });
-
-
-
-
-    // app.get('/api/download_token_pub', (req, res) => {
-    //     logger.info('request download token pub ' + req);
-    //     var key = req.query.key;
-    //     var downloadToken = get_download_token_pub(key);
-    //     // logger.info(downloadToken);
-    //     res.send(downloadToken);
-    // });
-
-    // app.get('/api/download_token_pri', (req, res) => {
-    //     logger.info('request download token pri ' + req);
-    //     var key = req.query.key;
-    //     var downloadToken = get_download_token_pri(key);
-    //     // logger.info(downloadToken);
-    //     res.send(downloadToken);
-    // });
-
-
+    // --------------------------- echo ======================================= 
 
     app.get('/api', (req, res) => {
         logger.info('api echo : ' + req);
@@ -256,6 +112,19 @@ const start = () => {
     });
 
 
+    // --------------------------- qiniu ======================================= 
+
+    app.post('/api/upload_token', (req, res) => {
+
+        handle_req_upload_token(req, res);
+    });
+
+
+
+
+
+
+    // --------------------------- wechat ======================================= 
     app.get('/api/wechat/get-signature', (req, res) => {
         wx.jssdk.getSignature(req.query.url).then(signatureData => {
             res.json(signatureData);
@@ -280,8 +149,6 @@ const start = () => {
             })
         }
     });
-
-
 
     app.get('/api/wechat/bl_login_call_back', (req, res) => {
 
@@ -313,33 +180,7 @@ const start = () => {
 
 
 
-
-
-    // app.get('/api/wechat/token_validate', (req, res) => {
-    //     var query = url.parse(req.url, true).query;
-    //     //logger.info("*** URL:" + req.url);
-    //     //logger.info(query);
-    //     var signature = query.signature;
-    //     var echostr = query.echostr;
-    //     var timestamp = query['timestamp'];
-    //     var nonce = query.nonce;
-    //     var oriArray = new Array();
-    //     oriArray[0] = nonce;
-    //     oriArray[1] = timestamp;
-    //     oriArray[2] = "c0cb73f4a56d4cbabbc9401cdf120b09"; //my set token ****
-    //     oriArray.sort();
-    //     var original = oriArray.join('');
-    //     logger.info("Original str : " + original);
-    //     logger.info("Signature : " + signature);
-    //     var scyptoString = sha1(original);
-    //     if (signature == scyptoString) {
-    //         res.send(echostr);
-    //         logger.info("Confirm and send echo back");
-    //     } else {
-    //         res.send("false");
-    //         logger.info("Failed!");
-    //     }
-    // });
+    // --------------------------- ready to go  ======================================= 
 
     app.listen(port, () => logger.info(`App listening on port ${port}!`));
 
@@ -351,3 +192,37 @@ const init = () => {
 }
 exports.init = init;
 exports.start = start;
+
+
+
+
+
+
+
+// ============================== wechat validation ============================== 
+
+// app.get('/api/wechat/token_validate', (req, res) => {
+//     var query = url.parse(req.url, true).query;
+//     //logger.info("*** URL:" + req.url);
+//     //logger.info(query);
+//     var signature = query.signature;
+//     var echostr = query.echostr;
+//     var timestamp = query['timestamp'];
+//     var nonce = query.nonce;
+//     var oriArray = new Array();
+//     oriArray[0] = nonce;
+//     oriArray[1] = timestamp;
+//     oriArray[2] = "c0cb73f4a56d4cbabbc9401cdf120b09"; //my set token ****
+//     oriArray.sort();
+//     var original = oriArray.join('');
+//     logger.info("Original str : " + original);
+//     logger.info("Signature : " + signature);
+//     var scyptoString = sha1(original);
+//     if (signature == scyptoString) {
+//         res.send(echostr);
+//         logger.info("Confirm and send echo back");
+//     } else {
+//         res.send("false");
+//         logger.info("Failed!");
+//     }
+// });

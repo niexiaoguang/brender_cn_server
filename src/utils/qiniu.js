@@ -117,7 +117,7 @@ const handle_req_upload_token_1 = (req, res) => {
                 var putPolicy = new qiniu.rs.PutPolicy(options);
                 var uploadToken = putPolicy.uploadToken(mac);
 
-                var overwriteBlendFilekey = mycrypt.simple_hash_with_salt(fuid + mycrypt.fuidJsonFileKeySalt) + '.blend';
+                var overwriteBlendFilekey = myconfig.nocacheFolder + mycrypt.simple_hash_with_salt(fuid + mycrypt.fuidJsonFileKeySalt) + '.blend';
 
                 var options_for_overwrite = {
                     scope: bucket_pub + ":" + overwriteBlendFilekey,
@@ -164,8 +164,9 @@ const handle_req_upload_token = (req, res) => {
     var fuid = req.body.fuid;
 
     //  write project data into qiniu overwrite =========
-    var projFileKey = mycrypt.simple_hash_with_salt(fuid + mycrypt.fuidJsonFileKeySalt) + '.json';
+    var projFileKey = myconfig.nocacheFolder + mycrypt.simple_hash_with_salt(fuid + mycrypt.fuidJsonFileKeySalt) + '.json';
 
+    logger.info('generate proj json file : ' + projFileKey);
     var keyToOverwrite = projFileKey;
     var bucket = bucket_pub;
     var options = {
@@ -221,8 +222,64 @@ const handle_new_uploaded_file = (cb_data, res) => {
     logger.info(cb_data.fuid);
     logger.info(cb_data.uuid);
 
+    var resp = {};
+    resp[myconfig.httpRespAttrStatus] = null;
+    resp[myconfig.httpRespAttrInfo] = myconfig.httpRespNo;
+    resp[myconfig.httpReqAttrUuid] = cb_data.uuid;
+    resp[myconfig.httpReqAttrFuid] = cb_data.fuid;
+    resp[myconfig.httpReqAttrHash] = cb_data.hash;
+    resp[myconfig.httpRespAttrFsize] = cb_data.fsize;
+    resp[myconfig.httpReqAttrFilekey] = cb_data.key;
+
+    // not blend file , like images need generate mark file
+    if (cb_data.key.indexOf('.blend') == -1) {
+        var fuidHash = mycrypt.simple_hash_with_salt(cb_data.fuid + mycrypt.fuidFileKeySalt);
+        var markerFileKey = cb_data.hash + myconfig.fileKeySep + fuidHash;
+
+
+        // write maker file
+        const putPolicy = new qiniu.rs.PutPolicy(options_pub);
+
+        var uploadToken = putPolicy.uploadToken(mac);
+
+        var config = new qiniu.conf.Config();
+        var formUploader = new qiniu.form_up.FormUploader(config);
+        var putExtra = new qiniu.form_up.PutExtra();
+
+        var data = cb_data;
+        formUploader.put(uploadToken, markerFileKey, data, putExtra, function(respErr,
+            respBody, respInfo) {
+            if (respErr) {
+                // throw respErr;
+                logger.error(respErr);
+
+                resp[myconfig.httpRespAttrStatus] = myconfig.httpRespError;
+                res.send(JSON.stringify(resp));
+
+            }
+            if (respInfo.statusCode == 200) {
+                logger.info(respBody);
+
+                resp[myconfig.httpRespAttrStatus] = myconfig.httpRespOk;
+                res.send(JSON.stringify(resp));
+
+            } else {
+                logger.info(respInfo.statusCode);
+                logger.info(respBody);
+                logger.error(respBody);
+
+                resp[myconfig.httpRespAttrStatus] = myconfig.httpRespError;
+                res.send(JSON.stringify(resp));
+
+            }
+        });
+
+
+
+
+    }
     // send data let client to handle
-    res.send(cb_data);
+    // res.send(cb_data);
 }
 
 

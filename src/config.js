@@ -10,6 +10,7 @@ const httpRespAttrInfo = 'info';
 const httpReqAttrUuid = 'uuid';
 const httpReqAttrFuid = 'fuid';
 const httpReqAttrHash = 'hash';
+const httpRespAttrFsize = 'fsize';
 const httpReqAttrFilekey = 'filekey';
 const httpReqAttrAbspath = 'abspath';
 const httpReqAttrRelpath = 'relpath';
@@ -20,6 +21,7 @@ const ErrorCodeQiniuReq = 4002;
 const ErrorCodeQiniuFileStat = 4004;
 
 const fileKeySep = '_';
+const nocacheFolder = '/nocache/';
 
 exports.httpRespAttrHash = httpRespAttrHash;
 exports.httpRespAttrToken = httpRespAttrToken;
@@ -36,7 +38,7 @@ exports.httpReqAttrHash = httpReqAttrHash;
 exports.httpReqAttrFilekey = httpReqAttrFilekey;
 exports.httpReqAttrAbspath = httpReqAttrAbspath;
 exports.httpReqAttrRelpath = httpReqAttrRelpath;
-
+exports.httpRespAttrFsize = httpRespAttrFsize;
 exports.ErrorCodeHashNotMatch = ErrorCodeHashNotMatch;
 exports.ErrorCodeQiniuTokanRead = ErrorCodeQiniuTokanRead;
 exports.ErrorCodeQiniuReq = ErrorCodeQiniuReq;
@@ -44,3 +46,4 @@ exports.ErrorCodeQiniuFileStat = ErrorCodeQiniuFileStat;
 
 
 exports.fileKeySep = fileKeySep;
+exports.nocacheFolder = nocacheFolder;

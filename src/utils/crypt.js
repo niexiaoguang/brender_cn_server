@@ -44,17 +44,16 @@ const dehashhash = (rawhash) => {
 }
 const make_uuid_by_openid = (raw) => {
     return md5(raw).substring(8, 24);
-
-
 }
 
 
-
 const fuidJsonFileKeySalt = 'brender_projcet_json';
+const fuidFileKeySalt = 'brender_project';
+const imageFileKeySalt = 'brender_img';
 
 exports.fuidJsonFileKeySalt = fuidJsonFileKeySalt;
-
-exports.make_uuid_by_openid = make_uuid_by_openid;
+exports.fuidFileKeySalt = fuidFileKeySalt;
+exports.imageFileKeySalt = imageFileKeySalt;
 exports.hashhash = hashhash;
 exports.dehashhash = dehashhash;
 

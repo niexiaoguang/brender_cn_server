@@ -1,5 +1,6 @@
 const httpRespAttrHash = 'hash';
 const httpRespAttrToken = 'token';
+const httpRespAttrTokenOverwrite = 'token_overwrite';
 const httpRespOk = 'ok';
 const httpRespError = 'error';
 const httpRespNo = 'no';
@@ -22,6 +23,7 @@ const fileKeySep = '_';
 
 exports.httpRespAttrHash = httpRespAttrHash;
 exports.httpRespAttrToken = httpRespAttrToken;
+exports.httpRespAttrTokenOverwrite = httpRespAttrTokenOverwrite;
 exports.httpRespOk = httpRespOk;
 exports.httpRespError = httpRespError;
 exports.httpRespNo = httpRespNo;

@@ -3,6 +3,8 @@ const qiniu = require('qiniu');
 const {
     logger
 } = require('./logger.js'); // require module as logger not the object inside which required by {logger}
+const mycrypt = require('./crypt.js');
+
 
 const myconfig = require('../config.js');
 // console.log(config.httpReqAttrAbspath);
@@ -35,20 +37,18 @@ const generate_filekey_by_hash = (hash, uuid, fuid) => {
     return hash;
 }
 
+
 // -------------------------------------------------------------------------------------------
 
+const handle_req_upload_token_1 = (req, res) => {
 
-const handle_req_upload_token = (req, res) => {
     var uuid = req.body.uuid;
     var fuid = req.body.fuid;
-    var hashes = req.body.hash;
-    var resp = {};
-
-
+    var hashes = req.body.projdata.hashes; // TODO
     var statOperations = [];
 
     for (let index = 0; index < hashes.length; index++) {
-        const element = generate_filekey_by_hash(hashes[index], uuid, fuid);
+        const element = generate_filekey_by_hash(hashes[index]);
         statOperations.push(qiniu.rs.statOp(bucket_pub, element));
 
     }
@@ -62,6 +62,8 @@ const handle_req_upload_token = (req, res) => {
         if (err) {
             //throw err;
             logger.error(err);
+
+            var resp = {};
 
             resp[myconfig.httpRespAttrStatus] = myconfig.httpRespError;
             resp[myconfig.httpRespAttrInfo] = myconfig.ErrorCodeQiniuReq;
@@ -110,21 +112,39 @@ const handle_req_upload_token = (req, res) => {
                     callbackBodyType: 'application/json'
                 };
 
+
+
                 var putPolicy = new qiniu.rs.PutPolicy(options);
                 var uploadToken = putPolicy.uploadToken(mac);
 
+                var overwriteBlendFilekey = mycrypt.simple_hash_with_salt(fuid + mycrypt.fuidJsonFileKeySalt) + '.blend';
+
+                var options_for_overwrite = {
+                    scope: bucket_pub + ":" + overwriteBlendFilekey,
+                    callbackUrl: uploadCallbackUrl,
+                    // callbackBody: '{"key":"$(key)","hash":"$(etag)","fsize":$(fsize),"bucket":"$(bucket)","name":"$(x:name)"}',
+                    callbackBody: callbackBody,
+                    callbackBodyType: 'application/json'
+                };
+
+                var putPolicy1 = new qiniu.rs.PutPolicy(options_for_overwrite);
+                var uploadToken1 = putPolicy1.uploadToken(mac);
 
 
+
+                var resp = {};
                 resp[myconfig.httpRespAttrStatus] = myconfig.httpRespOk;
                 resp[myconfig.httpRespAttrInfo] = qRes;
                 resp[myconfig.httpReqAttrUuid] = uuid;
                 resp[myconfig.httpReqAttrFuid] = fuid;
                 resp[myconfig.httpRespAttrToken] = uploadToken;
+                resp[myconfig.httpRespAttrTokenOverwrite] = uploadToken1;
 
                 res.send(JSON.stringify(resp));
 
             } else {
 
+                var resp = {};
 
                 resp[myconfig.httpRespAttrStatus] = myconfig.httpRespOk;
                 resp[myconfig.httpRespAttrInfo] = myconfig.ErrorCodeQiniuFileStat;
@@ -136,6 +156,58 @@ const handle_req_upload_token = (req, res) => {
         }
     });
 
+}
+
+
+const handle_req_upload_token = (req, res) => {
+    var uuid = req.body.uuid;
+    var fuid = req.body.fuid;
+
+    //  write project data into qiniu overwrite =========
+    var projFileKey = mycrypt.simple_hash_with_salt(fuid + mycrypt.fuidJsonFileKeySalt) + '.json';
+
+    var keyToOverwrite = projFileKey;
+    var bucket = bucket_pub;
+    var options = {
+        scope: bucket + ":" + keyToOverwrite
+    };
+    var putPolicy = new qiniu.rs.PutPolicy(options);
+    var uploadToken = putPolicy.uploadToken(mac);
+
+    var config = new qiniu.conf.Config();
+    var formUploader = new qiniu.form_up.FormUploader(config);
+    var putExtra = new qiniu.form_up.PutExtra();
+
+    logger.info('data need to handle' + req.body);
+
+    formUploader.put(uploadToken, projFileKey, JSON.stringify(req.body), putExtra, function(respErr,
+        respBody, respInfo) {
+        if (respErr) {
+
+            logger.error(respErr);
+            var resp = {};
+            resp[myconfig.httpRespAttrStatus] = myconfig.httpRespError;
+            resp[myconfig.httpRespAttrInfo] = myconfig.ErrorCodeQiniuReq;
+            resp[myconfig.httpReqAttrUuid] = uuid;
+            resp[myconfig.httpReqAttrFuid] = fuid;
+
+            res.send(JSON.stringify(resp));
+
+        }
+        if (respInfo.statusCode == 200) {
+            // pass req and res to next handle process
+            handle_req_upload_token_1(req, res);
+
+        } else {
+            logger.info(respInfo.statusCode);
+            logger.info(respBody);
+            var resp = {};
+            resp[myconfig.httpRespAttrStatus] = myconfig.httpRespError;
+            resp[myconfig.httpRespAttrInfo] = respInfo.statusCode;
+            resp[myconfig.httpReqAttrUuid] = uuid;
+            resp[myconfig.httpReqAttrFuid] = fuid;
+        }
+    });
 
 }
 

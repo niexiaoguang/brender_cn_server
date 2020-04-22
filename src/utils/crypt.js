@@ -8,6 +8,12 @@ const salt = '2aiA3B8ge9ypyuXh';
 
 const hashids = new Hashids(salt);
 
+
+const simple_hash_with_salt = (raw, salt) => {
+    return md5(raw + salt).substring(8, 24);
+
+}
+
 const hashhash = (rawhash) => {
 
 
@@ -43,14 +49,13 @@ const make_uuid_by_openid = (raw) => {
 }
 
 
-const sha1 = (str) => {
-    var md5sum = crypto.createHash("sha1");
-    md5sum.update(str);
-    str = md5sum.digest("hex");
-    return str;
-}
+
+const fuidJsonFileKeySalt = 'brender_projcet_json';
+
+exports.fuidJsonFileKeySalt = fuidJsonFileKeySalt;
 
 exports.make_uuid_by_openid = make_uuid_by_openid;
-exports.sha1 = sha1;
 exports.hashhash = hashhash;
 exports.dehashhash = dehashhash;
+
+exports.simple_hash_with_salt = simple_hash_with_salt;

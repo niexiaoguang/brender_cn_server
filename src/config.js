@@ -21,7 +21,7 @@ const ErrorCodeQiniuReq = 4002;
 const ErrorCodeQiniuFileStat = 4004;
 
 const fileKeySep = '_';
-const nocacheFolder = '/nocache/';
+const nocacheFolder = 'nocache/';
 
 exports.httpRespAttrHash = httpRespAttrHash;
 exports.httpRespAttrToken = httpRespAttrToken;

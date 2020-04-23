@@ -254,7 +254,7 @@ const handle_new_uploaded_file = (cb_data, res) => {
         var formUploader = new qiniu.form_up.FormUploader(config);
         var putExtra = new qiniu.form_up.PutExtra();
 
-        var data = cb_data;
+        var data = JSON.stringify(cb_data);
         formUploader.put(uploadToken, markerFileKey, data, putExtra, function(respErr,
             respBody, respInfo) {
             if (respErr) {

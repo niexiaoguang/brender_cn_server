@@ -44,16 +44,16 @@ const handle_req_upload_token_1 = (req, res) => {
 
     var uuid = req.body.uuid;
     var fuid = req.body.fuid;
-    var hashesDict = req.body.hashes; // TODO
+    var fileKeysDict = req.body.filekeys; // TODO
 
 
     var statOperations = [];
     // get keys from object
-    var hashes = Object.keys(hashesDict);
-    logger.info('got token post request with hashes ' + hashes);
+    var fileKeys = Object.keys(fileKeysDict);
+    logger.info('got token post request with fileKeys ' + fileKeys);
 
-    for (let index = 0; index < hashes.length; index++) {
-        const element = generate_filekey_by_hash(hashes[index]);
+    for (let index = 0; index < fileKeys.length; index++) {
+        const element = generate_filekey_by_hash(fileKeys[index]);
         statOperations.push(qiniu.rs.statOp(bucket_pub, element));
 
     }
@@ -98,10 +98,11 @@ const handle_req_upload_token_1 = (req, res) => {
                 });
 
                 // minus qRes from hashesh
-                qRes = hashes.filter(n => !qRes.includes(n));
+                qRes = fileKeys.filter(n => !qRes.includes(n));
 
                 qRes = qRes.map(function(k) {
-                    return [k, hashesDict[k]]
+                    // [abspath,filehash,fileKey] =============== 
+                    return fileKeysDict[k];
                 });
 
                 // generate token to response
@@ -241,8 +242,8 @@ const handle_new_uploaded_file = (cb_data, res) => {
 
     // not blend file , like images need generate mark file
     if (cb_data.key.indexOf('.blend') == -1) {
-        var fuidHash = mycrypt.simple_hash_with_salt(cb_data.fuid + mycrypt.fuidFileKeySalt);
-        var markerFileKey = cb_data.hash + myconfig.fileKeySep + fuidHash;
+
+        var markerFileKey = cb_data.key + myconfig.fileKeySep + cb_data.fuid + '.json';
 
 
         // write maker file
@@ -286,6 +287,7 @@ const handle_new_uploaded_file = (cb_data, res) => {
 
 
     }
+
     // send data let client to handle
     // res.send(cb_data);
 }

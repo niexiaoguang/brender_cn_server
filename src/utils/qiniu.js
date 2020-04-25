@@ -33,8 +33,46 @@ const {
 
 
 
-const generate_filekey_by_hash = (hash, uuid, fuid) => {
-    return hash;
+const generate_tokens_by_uuid_fuid = (uuid, fuid) => {
+
+    // generate token to response
+    logger.info('get token with cb with uuid : ' + uuid);
+    logger.info('get token with cb with fuid : ' + fuid);
+    var uploadCallbackUrl = 'https://brender.cn/api/upload_callback';
+
+    var callbackBody = '{"key":"$(key)","hash":"$(etag)","fsize":$(fsize),"bucket":"$(bucket)","fuid":"' + fuid + '",' + '"uuid":"' + uuid + '"}';
+
+    logger.info('cutome cb : ' + callbackBody);
+    var options = {
+        scope: bucket_pub,
+        callbackUrl: uploadCallbackUrl,
+        // callbackBody: '{"key":"$(key)","hash":"$(etag)","fsize":$(fsize),"bucket":"$(bucket)","name":"$(x:name)"}',
+        callbackBody: callbackBody,
+        callbackBodyType: 'application/json'
+    };
+
+
+
+    // prepare overwrite token for blend file
+    var putPolicy = new qiniu.rs.PutPolicy(options);
+    var uploadToken = putPolicy.uploadToken(mac);
+
+    var overwriteBlendFilekey = myconfig.nocacheFolder + myconfig.projFolder + mycrypt.simple_hash_with_salt(fuid, uuid) + '.blend';
+
+
+    logger.info('overwrite project filekey : ' + overwriteBlendFilekey);
+    var options_for_overwrite = {
+        scope: bucket_pub + ":" + overwriteBlendFilekey,
+        callbackUrl: uploadCallbackUrl,
+        // callbackBody: '{"key":"$(key)","hash":"$(etag)","fsize":$(fsize),"bucket":"$(bucket)","name":"$(x:name)"}',
+        callbackBody: callbackBody,
+        callbackBodyType: 'application/json'
+    };
+
+    var putPolicy1 = new qiniu.rs.PutPolicy(options_for_overwrite);
+    var uploadToken1 = putPolicy1.uploadToken(mac);
+
+    return [uploadToken, uploadToken1];
 }
 
 
@@ -44,19 +82,21 @@ const handle_req_upload_token_1 = (req, res) => {
 
     var uuid = req.body.uuid;
     var fuid = req.body.fuid;
-    var fileKeysDict = req.body.filekeys; // TODO
+    var fileHashesDict = req.body.filehashes; // TODO
 
-
+    var fileHashList = Object.keys(fileHashesDict);
+    logger.info('file hash list to query exist : ' + fileHashList);
     var statOperations = [];
-    // get keys from object
-    var fileKeys = Object.keys(fileKeysDict);
-    logger.info('got token post request with fileKeys ' + fileKeys);
 
-    for (let index = 0; index < fileKeys.length; index++) {
-        const element = generate_filekey_by_hash(fileKeys[index]);
-        statOperations.push(qiniu.rs.statOp(bucket_pub, element));
+    // get may file keys from hashes
+    for (let index = 0; index < fileHashList.length; index++) {
+        const element = fileHashList[index];
+        var fileKey = myconfig.imgFolder + mycrypt.simple_hash_with_salt(fileHashList[index], myconfig.imageFileKeySalt)
+        statOperations.push(qiniu.rs.statOp(bucket_pub, fileKey));
 
     }
+    logger.info('got token post request with fileKeys ' + statOperations);
+
 
     var config = new qiniu.conf.Config();
     //config.useHttpsDomain = true;
@@ -77,10 +117,13 @@ const handle_req_upload_token_1 = (req, res) => {
 
             res.send(JSON.stringify(resp));
         } else {
+            // generate token anyway
+            var tokens = generate_tokens_by_uuid_fuid(uuid, fuid);
+
 
             // 200 is success, 298 is part success
-            logger.info(respInfo);
-            var qRes = [];
+            // logger.info(respInfo);
+            var queryHashRes = [];
 
             if (parseInt(respInfo.statusCode / 100) == 2) {
                 respBody.forEach(function(item) {
@@ -89,76 +132,51 @@ const handle_req_upload_token_1 = (req, res) => {
                             item.data.mimeType + "\t" + item.data.putTime + "\t" +
                             item.data.type);
 
-                        qRes.push(item.data.hash);
+                        queryHashRes.push(item.data.hash);
 
 
                     } else {
                         logger.info(item.code + "\t" + item.data.error);
                     }
                 });
-
+                logger.info('queried image hash by keys : ' + queryHashRes);
                 // minus qRes from hashesh
-                qRes = fileKeys.filter(n => !qRes.includes(n));
+                queryHashRes = fileHashList.filter(n => !queryHashRes.includes(n));
 
-                qRes = qRes.map(function(k) {
-                    // [abspath,filehash,fileKey] =============== 
-                    return fileKeysDict[k];
-                });
+                logger.info('new image to upload : ' + queryHashRes);
 
-                // generate token to response
-                logger.info('get token with cb with uuid : ' + uuid);
-                logger.info('get token with cb with fuid : ' + fuid);
-                var uploadCallbackUrl = 'https://brender.cn/api/upload_callback';
+                var respFileHashesDict = {};
+                for (let index = 0; index < queryHashRes.length; index++) {
+                    const filehash = queryHashRes[index];
+                    const abspath = fileHashesDict[filehash];
+                    respFileHashesDict[filehash] = abspath;
 
-                var callbackBody = '{"key":"$(key)","hash":"$(etag)","fsize":$(fsize),"bucket":"$(bucket)","fuid":"' + fuid + '",' + '"uuid":"' + uuid + '"}';
-
-                logger.info('cutome cb : ' + callbackBody);
-                var options = {
-                    scope: bucket_pub,
-                    callbackUrl: uploadCallbackUrl,
-                    // callbackBody: '{"key":"$(key)","hash":"$(etag)","fsize":$(fsize),"bucket":"$(bucket)","name":"$(x:name)"}',
-                    callbackBody: callbackBody,
-                    callbackBodyType: 'application/json'
-                };
-
-
-
-                var putPolicy = new qiniu.rs.PutPolicy(options);
-                var uploadToken = putPolicy.uploadToken(mac);
-
-                var overwriteBlendFilekey = myconfig.nocacheFolder + mycrypt.simple_hash_with_salt(fuid + mycrypt.fuidJsonFileKeySalt) + '.blend';
-
-                var options_for_overwrite = {
-                    scope: bucket_pub + ":" + overwriteBlendFilekey,
-                    callbackUrl: uploadCallbackUrl,
-                    // callbackBody: '{"key":"$(key)","hash":"$(etag)","fsize":$(fsize),"bucket":"$(bucket)","name":"$(x:name)"}',
-                    callbackBody: callbackBody,
-                    callbackBodyType: 'application/json'
-                };
-
-                var putPolicy1 = new qiniu.rs.PutPolicy(options_for_overwrite);
-                var uploadToken1 = putPolicy1.uploadToken(mac);
-
-
+                }
 
                 var resp = {};
                 resp[myconfig.httpRespAttrStatus] = myconfig.httpRespOk;
-                resp[myconfig.httpRespAttrInfo] = qRes;
+                resp[myconfig.httpRespAttrInfo] = respFileHashesDict;
                 resp[myconfig.httpReqAttrUuid] = uuid;
                 resp[myconfig.httpReqAttrFuid] = fuid;
-                resp[myconfig.httpRespAttrToken] = uploadToken;
-                resp[myconfig.httpRespAttrTokenOverwrite] = uploadToken1;
+                resp[myconfig.httpRespAttrToken] = tokens[0];
+                resp[myconfig.httpRespAttrTokenOverwrite] = tokens[1];
 
                 res.send(JSON.stringify(resp));
 
             } else {
 
+                // query with empty result , just send all request hash bback
+
+                logger.info('all request are new images : ' + statOperations);
+
                 var resp = {};
 
                 resp[myconfig.httpRespAttrStatus] = myconfig.httpRespOk;
-                resp[myconfig.httpRespAttrInfo] = myconfig.ErrorCodeQiniuFileStat;
+                resp[myconfig.httpRespAttrInfo] = fileHashesDict;
                 resp[myconfig.httpReqAttrUuid] = uuid;
                 resp[myconfig.httpReqAttrFuid] = fuid;
+                resp[myconfig.httpRespAttrToken] = tokens[0];
+                resp[myconfig.httpRespAttrTokenOverwrite] = tokens[1];
 
                 res.send(JSON.stringify(resp));
             }
@@ -173,7 +191,7 @@ const handle_req_upload_token = (req, res) => {
     var fuid = req.body.fuid;
 
     //  write project data into qiniu overwrite =========
-    var projFileKey = myconfig.nocacheFolder + mycrypt.simple_hash_with_salt(fuid, mycrypt.fuidJsonFileKeySalt) + '.json';
+    var projFileKey = myconfig.nocacheFolder + myconfig.projInfoFolder + mycrypt.simple_hash_with_salt(fuid, uuid) + '.json';
 
     logger.info('generate proj json file : ' + projFileKey);
     var keyToOverwrite = projFileKey;
@@ -243,7 +261,7 @@ const handle_new_uploaded_file = (cb_data, res) => {
     // not blend file , like images need generate mark file
     if (cb_data.key.indexOf('.blend') == -1) {
 
-        var markerFileKey = cb_data.key + myconfig.fileKeySep + cb_data.fuid + '.json';
+        var markerFileKey = myconfig.imgMarkerFolder + cb_data.key + myconfig.fileKeySep + mycrypt.simple_hash_with_salt(cb_data.fuid, cb_data.uuid) + '.json';
 
 
         // write maker file
@@ -286,10 +304,13 @@ const handle_new_uploaded_file = (cb_data, res) => {
 
 
 
+    } else {
+        // send data let client to handle
+        resp[myconfig.httpRespAttrStatus] = myconfig.httpRespOk;
+        res.send(JSON.stringify(resp));
+
     }
 
-    // send data let client to handle
-    // res.send(cb_data);
 }
 
 

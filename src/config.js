@@ -20,8 +20,13 @@ const ErrorCodeQiniuTokanRead = 4001;
 const ErrorCodeQiniuReq = 4002;
 const ErrorCodeQiniuFileStat = 4004;
 
+const imageFileKeySalt = 'brender_img'; // may use complex salt value
 const fileKeySep = '_';
 const nocacheFolder = 'nocache/';
+const imgFolder = 'img/';
+const imgMarkerFolder = 'img_marker/';
+const projInfoFolder = 'proj_info/';
+const projFolder = 'proj/';
 
 exports.httpRespAttrHash = httpRespAttrHash;
 exports.httpRespAttrToken = httpRespAttrToken;
@@ -47,3 +52,9 @@ exports.ErrorCodeQiniuFileStat = ErrorCodeQiniuFileStat;
 
 exports.fileKeySep = fileKeySep;
 exports.nocacheFolder = nocacheFolder;
+exports.imgFolder = imgFolder;
+exports.imgMarkerFolder = imgMarkerFolder;
+exports.projInfoFolder = projInfoFolder;
+exports.projFolder = projFolder;
+
+exports.imageFileKeySalt = imageFileKeySalt;

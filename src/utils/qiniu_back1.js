@@ -76,6 +76,115 @@ const generate_tokens_by_uuid_fuid = (uuid, fuid) => {
 }
 
 
+// -------------------------------------------------------------------------------------------
+
+const handle_req_upload_token_1 = (req, res) => {
+
+    var uuid = req.body.uuid;
+    var fuid = req.body.fuid;
+    var fileHashesDict = req.body.filehashes; // TODO
+
+    var fileHashList = Object.keys(fileHashesDict);
+    logger.info('file hash list to query exist : ' + fileHashList);
+    var statOperations = [];
+
+    // get may file keys from hashes
+    for (let index = 0; index < fileHashList.length; index++) {
+        const element = fileHashList[index];
+        var fileKey = myconfig.imgFolder + mycrypt.simple_hash_with_salt(fileHashList[index], myconfig.imageFileKeySalt)
+        statOperations.push(qiniu.rs.statOp(bucket_pub, fileKey));
+
+    }
+    logger.info('got token post request with fileKeys ' + statOperations);
+
+
+    var config = new qiniu.conf.Config();
+    //config.useHttpsDomain = true;
+    config.zone = qiniu.zone.Zone_z0;
+    var bucketManager = new qiniu.rs.BucketManager(mac, config);
+
+    bucketManager.batch(statOperations, function(err, respBody, respInfo) {
+        if (err) {
+            //throw err;
+            logger.error(err);
+
+            var resp = {};
+
+            resp[myconfig.httpRespAttrStatus] = myconfig.httpRespError;
+            resp[myconfig.httpRespAttrInfo] = myconfig.ErrorCodeQiniuReq;
+            resp[myconfig.httpReqAttrUuid] = uuid;
+            resp[myconfig.httpReqAttrFuid] = fuid;
+
+            res.send(JSON.stringify(resp));
+        } else {
+            // generate token anyway
+            var tokens = generate_tokens_by_uuid_fuid(uuid, fuid);
+
+
+            // 200 is success, 298 is part success
+            // logger.info(respInfo);
+            var queryHashRes = [];
+
+            if (parseInt(respInfo.statusCode / 100) == 2) {
+                respBody.forEach(function(item) {
+                    if (item.code == 200) {
+                        logger.info(item.data.fsize + "\t" + item.data.hash + "\t" +
+                            item.data.mimeType + "\t" + item.data.putTime + "\t" +
+                            item.data.type);
+
+                        queryHashRes.push(item.data.hash);
+
+
+                    } else {
+                        logger.info(item.code + "\t" + item.data.error);
+                    }
+                });
+                logger.info('queried image hash by keys : ' + queryHashRes);
+                // minus qRes from hashesh
+                queryHashRes = fileHashList.filter(n => !queryHashRes.includes(n));
+
+                logger.info('new image to upload : ' + queryHashRes);
+
+                var respFileHashesDict = {};
+                for (let index = 0; index < queryHashRes.length; index++) {
+                    const filehash = queryHashRes[index];
+                    const abspath = fileHashesDict[filehash];
+                    respFileHashesDict[filehash] = abspath;
+
+                }
+
+                var resp = {};
+                resp[myconfig.httpRespAttrStatus] = myconfig.httpRespOk;
+                resp[myconfig.httpRespAttrInfo] = respFileHashesDict;
+                resp[myconfig.httpReqAttrUuid] = uuid;
+                resp[myconfig.httpReqAttrFuid] = fuid;
+                resp[myconfig.httpRespAttrToken] = tokens[0];
+                resp[myconfig.httpRespAttrTokenOverwrite] = tokens[1];
+
+                res.send(JSON.stringify(resp));
+
+            } else {
+
+                // query with empty result , just send all request hash bback
+
+                logger.info('all request are new images : ' + statOperations);
+
+                var resp = {};
+
+                resp[myconfig.httpRespAttrStatus] = myconfig.httpRespOk;
+                resp[myconfig.httpRespAttrInfo] = fileHashesDict;
+                resp[myconfig.httpReqAttrUuid] = uuid;
+                resp[myconfig.httpReqAttrFuid] = fuid;
+                resp[myconfig.httpRespAttrToken] = tokens[0];
+                resp[myconfig.httpRespAttrTokenOverwrite] = tokens[1];
+
+                res.send(JSON.stringify(resp));
+            }
+        }
+    });
+
+}
+
 
 const handle_req_upload_token = (req, res) => {
     var uuid = req.body.uuid;
@@ -114,16 +223,8 @@ const handle_req_upload_token = (req, res) => {
 
         }
         if (respInfo.statusCode == 200) {
-            var tokens = generate_tokens_by_uuid_fuid(uuid, fuid);
-            var resp = {};
-            resp[myconfig.httpRespAttrStatus] = myconfig.httpRespOk;
-            resp[myconfig.httpRespAttrInfo] = '';
-            resp[myconfig.httpReqAttrUuid] = uuid;
-            resp[myconfig.httpReqAttrFuid] = fuid;
-            resp[myconfig.httpRespAttrToken] = tokens[0];
-            resp[myconfig.httpRespAttrTokenOverwrite] = tokens[1];
-
-            res.send(JSON.stringify(resp));
+            // pass req and res to next handle process
+            handle_req_upload_token_1(req, res);
 
         } else {
             logger.info(respInfo.statusCode);

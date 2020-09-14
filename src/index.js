@@ -40,6 +40,7 @@ const start = () => {
     logger.info('init done , start');
     httpServer.start();
 
+
     // test_amqp.test();
 };
 

@@ -46,19 +46,6 @@ const {
 // ========================================================
 
 
-// qcloud sms api
-// ========================================================
-const {
-    handle_sms_auth
-} = require('./utils/sms.js');
-
-
-// ========================================================
-
-
-
-
-
 
 const {
     inspect
@@ -209,11 +196,6 @@ const start = () => {
     app.get('/api/sms', (req, res) => {
         logger.info('sms echo : ' + req);
         res.send('Hello SMS!');
-        // params :
-        // phone string list 
-        // auth code string
-        // timeout string
-        handle_sms_auth(["8615898112699"],"8888","2");
     });
 
 

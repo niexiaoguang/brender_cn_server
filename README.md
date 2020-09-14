@@ -23,3 +23,9 @@ cd into /src under node project
 docker run --rm -u $(id -u):$(id -g) -it -p 3000:3000 -p 5671:5671 -v $(pwd):/usr/app/src node_dev
 
 or just run docker-compose in this root of project
+
+
+### add new package
+edit package name and version in package.json file
+then build new image  -> ### build dev docker 
+then docker-compose up new image

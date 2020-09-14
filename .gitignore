@@ -2,6 +2,7 @@
 *.crt
 /ssl
 ssl/
+
 # Logs
 logs
 *.log

@@ -8,7 +8,7 @@ const Credential = tencentcloud.common.Credential;
 const ClientProfile = tencentcloud.common.ClientProfile;
 const HttpProfile = tencentcloud.common.HttpProfile;
 
-
+const config = require('../ssl/web_server_config.json');
 /* 必要步骤：
  * 实例化一个认证对象，入参需要传入腾讯云账户密钥对 secretId 和 secretKey
  * 本示例采用从环境变量读取的方式，需要预先在环境变量中设置这两个值
@@ -17,7 +17,7 @@ const HttpProfile = tencentcloud.common.HttpProfile;
 //let cred = new Credential(process.env.TENCENTCLOUD_SECRET_ID, process.env.TENCENTCLOUD_SECRET_KEY);
 // let cred = new Credential("xxx", "xxx");
 
-let cred = new Credential("AKIDf7JTRHZUU0MZGjvizteAQP8btzHNj3ar", "B6vRuEQMo1zfJhnqkVzOdiWJyNdjnfkb");
+let cred = new Credential(config.secretId, config.secretKey);
 
 /* 非必要步骤:
  * 实例化一个客户端配置对象，可以指定超时时间等配置 */
@@ -56,9 +56,9 @@ let sms_req = new models.SendSmsRequest();
  * sms helper：https://cloud.tencent.com/document/product/382/3773 */
 
 /* 短信应用 ID: 在 [短信控制台] 添加应用后生成的实际 SDKAppID，例如1400006666 */
-sms_req.SmsSdkAppid = "1400426559";
+sms_req.SmsSdkAppid = config.SmsSdkAppid;
 /* 短信签名内容: 使用 UTF-8 编码，必须填写已审核通过的签名，可登录 [短信控制台] 查看签名信息 */
-sms_req.Sign = "乐乎软件";
+sms_req.Sign = config.Sign;
 /* 短信码号扩展号: 默认未开通，如需开通请联系 [sms helper] */
 sms_req.ExtendCode = "";
 /* 国际/港澳台短信 senderid: 国内短信填空，默认未开通，如需开通请联系 [sms helper] */
@@ -69,7 +69,7 @@ sms_req.SessionContext = "";
  * 例如+8613711112222， 其中前面有一个+号 ，86为国家码，13711112222为手机号，最多不要超过200个手机号*/
 sms_req.PhoneNumberSet = ["+8615898112699"];
 /* 模板 ID: 必须填写已审核通过的模板 ID，可登录 [短信控制台] 查看模板 ID */
-sms_req.TemplateID = "719812";
+sms_req.TemplateID = config.TemplateID;
 /* 模板参数: 若无模板参数，则设置为空*/
 sms_req.TemplateParamSet = ["6668","2"];
 

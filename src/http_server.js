@@ -49,7 +49,11 @@ const {
 // qcloud sms api
 // ========================================================
 const {
-    handle_sms_auth
+    handle_sms_auth_reqcode
+} = require('./utils/sms.js');
+
+const {
+    handle_sms_auth_verifycode
 } = require('./utils/sms.js');
 
 
@@ -85,26 +89,28 @@ const clean_login_pool = () => {
     }
 };
 
-const wechatConfig = {
-    //set your oauth redirect url, defaults to localhost
-    "wechatRedirectUrl": "https://brender.cn/api/wechat/bl_login_call_back",
-    "wechatToken": "c0cb73f4a56d4cbabbc9401cdf120b09", //not necessary required
-    "appId": "wx71881af6d1cdaea8",
-    "appSecret": "74b7f36f09f414001fc429c756d62a05",
-    // card: true, //enable cards
-    // payment: true, //enable payment support
-    // merchantId: '', //
-    // paymentSandBox: true, //dev env
-    // paymentKey: '', //API key to gen payment sign
-    // paymentCertificatePfx: fs.readFileSync(path.join(process.cwd(), 'cert/apiclient_cert.p12')),
-    //default payment notify url
-    // paymentNotifyUrl: `http://your.domain.com/api/wechat/payment/`,
-    //mini program config
-    // "miniProgram": {
-    //     "appId": "mp_appid",
-    //     "appSecret": "mp_app_secret",
-    // }
-}
+
+const wechatConfig = require('./ssl/wechat_config.json');
+// const wechatConfig = {
+//     //set your oauth redirect url, defaults to localhost
+//     "wechatRedirectUrl": "https://brender.cn/api/wechat/bl_login_call_back",
+//     "wechatToken": "xxx", //not necessary required
+//     "appId": "xxx",
+//     "appSecret": "xxx",
+//     // card: true, //enable cards
+//     // payment: true, //enable payment support
+//     // merchantId: '', //
+//     // paymentSandBox: true, //dev env
+//     // paymentKey: '', //API key to gen payment sign
+//     // paymentCertificatePfx: fs.readFileSync(path.join(process.cwd(), 'cert/apiclient_cert.p12')),
+//     //default payment notify url
+//     // paymentNotifyUrl: `http://your.domain.com/api/wechat/payment/`,
+//     //mini program config
+//     // "miniProgram": {
+//     //     "appId": "mp_appid",
+//     //     "appSecret": "mp_app_secret",
+//     // }
+// }
 
 const wx = new Wechat(wechatConfig);
 const app = express();
@@ -206,16 +212,27 @@ const start = () => {
 
     // --------------------------- sms ======================================= 
 
-    app.get('/api/sms', (req, res) => {
-        logger.info('sms echo : ' + req);
-        res.send('Hello SMS!');
+    app.get('/api/sms/reqcode', async (req,res) => {
+        // logger.info('sms echo : ' + req);
+        // res.send('reqcodeq SMS!');
         // params :
         // phone string list 
         // auth code string
         // timeout string
-        handle_sms_auth(["8615898112699"],"8888","2");
+        var result = await handle_sms_auth_reqcode(req,res);
+        res.send(result);
     });
 
+
+    app.get('/api/sms/verifycode', async (req,res) => {
+        // logger.info('sms echo : ' + req);
+        // params :
+        // phone string list 
+        // auth code string
+        // timeout string
+        var result = await handle_sms_auth_verifycode(req,res);
+        res.send(result);
+    });
 
 
 

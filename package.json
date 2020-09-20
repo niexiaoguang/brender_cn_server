@@ -31,7 +31,8 @@
         "amqplib": "^0.5.5",
         "avsc": "^5.4.19",
         "hashids": "^2.2.1",
-        "tencentcloud-sdk-nodejs":"^3.0.248"
+        "tencentcloud-sdk-nodejs":"^3.0.248",
+        "keyv":"^4.0.1"
     },
     "devDependencies": {
         "nodemon": "^2.0.2"

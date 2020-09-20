@@ -58,3 +58,4 @@ exports.hashhash = hashhash;
 exports.dehashhash = dehashhash;
 
 exports.simple_hash_with_salt = simple_hash_with_salt;
+exports.make_uuid_by_openid = make_uuid_by_openid;

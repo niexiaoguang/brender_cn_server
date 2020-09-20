@@ -9,6 +9,11 @@ const ClientProfile = tencentcloud.common.ClientProfile;
 const HttpProfile = tencentcloud.common.HttpProfile;
 
 const config = require('../ssl/web_server_config.json');
+
+
+const Keyv = require('keyv');
+const keyv = new Keyv();
+const keyvExpire = 1000000;
 /* 必要步骤：
  * 实例化一个认证对象，入参需要传入腾讯云账户密钥对 secretId 和 secretKey
  * 本示例采用从环境变量读取的方式，需要预先在环境变量中设置这两个值
@@ -16,7 +21,6 @@ const config = require('../ssl/web_server_config.json');
  * CAM 密匙查询: https://console.cloud.tencent.com/cam/capi*/
 //let cred = new Credential(process.env.TENCENTCLOUD_SECRET_ID, process.env.TENCENTCLOUD_SECRET_KEY);
 // let cred = new Credential("xxx", "xxx");
-
 let cred = new Credential(config.secretId, config.secretKey);
 
 /* 非必要步骤:
@@ -87,22 +91,36 @@ sms_req.TemplateParamSet = ["6668","2"];
 // });
 
 
-function handle_sms_auth(phone_list,code,timeout) {
+async function handle_sms_auth_reqcode(req) {
+    let phone_list = ["+8615898112699"];
+    let code = "8888";
+    let timeout = "2";
     sms_req.PhoneNumberSet = phone_list;
 
     sms_req.TemplateParamSet = [code,timeout];
     // 通过 client 对象调用想要访问的接口，需要传入请求对象以及响应回调函数
-    client.SendSms(sms_req, function (err, response) {
+    client.SendSms(sms_req,async function (err, response) {
         // 请求异常返回，打印异常信息
         if (err) {
             console.log(err);
-            return;
+            return err;
         }
         // 请求正常返回，打印 response 对象
+        await keyv.set(phone_list,code);
         console.log(response.to_json_string());
+        return response;
+
     });
 
 
 }
 
-exports.handle_sms_auth = handle_sms_auth;
+async function handle_sms_auth_verifycode(req) {
+    console.log('verify code with keyv');
+    var code1 = await keyv.get(phone_list);
+    console.log(code1);
+    return code1 === code;
+}
+
+exports.handle_sms_auth_reqcode = handle_sms_auth_reqcode;
+exports.handle_sms_auth_verifycode = handle_sms_auth_verifycode;

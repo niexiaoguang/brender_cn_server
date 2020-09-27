@@ -7,7 +7,8 @@ const express = require('express'),
     crypto = require('crypto'),
     fs = require('fs'),
     url = require('url'),
-    bodyParser = require('body-parser');
+    bodyParser = require('body-parser'),
+    sha1 = require('sha1');
 
 const {
     logger
@@ -27,11 +28,7 @@ const {
     Wechat
 } = require('wechat-jssdk');
 
-const {
-    sha1
-} = require('./utils/crypt.js');
-
-
+// 
 // qiniu api
 // ========================================================
 const {
@@ -59,6 +56,21 @@ const {
 
 // ========================================================
 
+
+// wechat api
+// ========================================================
+const {
+    get_access_token
+} = require('./wechat/access_token.js');
+
+const {
+    init_menu
+} = require('./wechat/init_menu.js');
+
+const {
+    handle_wechat_service_req
+} = require('./wechat/handle_req.js');
+// ========================================================
 
 
 
@@ -155,6 +167,58 @@ const start = () => {
 
 
     // --------------------------- wechat ======================================= 
+    
+    app.post('/api/wechat',(req,res) => {
+        handle_wechat_service_req(req,res);
+    });
+
+
+
+
+// ============================== wechat validation ============================== 
+
+    // app.get('/api/wechat', (req, res) => {
+    //     var query = url.parse(req.url, true).query;
+    //     //logger.info("*** URL:" + req.url);
+    //     //logger.info(query);
+    //     var signature = query.signature;
+    //     var echostr = query.echostr;
+    //     var timestamp = query['timestamp'];
+    //     var nonce = query.nonce;
+    //     var oriArray = new Array();
+    //     oriArray[0] = nonce;
+    //     oriArray[1] = timestamp;
+    //     oriArray[2] = "c0cb73f4a56d4cbabbc9401cdf120b09"; //my set token ****
+    //     oriArray.sort();
+    //     var original = oriArray.join('');
+    //     logger.info("Original str : " + original);
+    //     logger.info("Signature : " + signature);
+    //     var scyptoString = sha1(original);
+    //     if (signature == scyptoString) {
+    //         res.send(echostr);
+    //         logger.info("Confirm and send echo back");
+    //     } else {
+    //         res.send("false");
+    //         logger.info("Failed!");
+    //     }
+    // });
+
+
+
+
+
+
+
+    app.get('/api/wechat/access',async (req,res) => {
+
+        await init_menu();
+        var token = await get_access_token();
+
+        res.json({token:token});
+    });
+
+
+
     app.get('/api/wechat/get-signature', (req, res) => {
         wx.jssdk.getSignature(req.query.url).then(signatureData => {
             res.json(signatureData);

@@ -37,6 +37,9 @@ function handle_wechat_service_req_lohogame(req,res) {
 
 
 
+
+					case 'text':
+						replyAuto(res,result);
 						break;
 				}
 
@@ -45,6 +48,27 @@ function handle_wechat_service_req_lohogame(req,res) {
 			}
 		})();
 	});
+}
+
+function replyAuto(res,result) {
+	console.log('reply Auto');
+	var user = result.xml.FromUserName;
+	var resMsg = {
+		xml:{
+			ToUserName:result.xml.FromUserName,
+			FromUserName:result.xml.ToUserName,
+			CreateTime:new Date().getTime(),
+			MsgType:'text',
+			Content:'game start! ' + user
+		}
+
+	}
+
+
+	var resMsgXml = xmlTools.toXml(resMsg);
+	console.log(resMsgXml);
+	res.send(resMsgXml);
+
 }
 
 

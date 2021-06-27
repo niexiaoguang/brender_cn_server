@@ -260,52 +260,52 @@ const start = () => {
     });
 
 
-    // app.post('/api/bl_login_confirm', jsonParser, (req, res) => {
-    //     var token = req.body.token;
-    //     logger.info('req : ' + JSON.stringify(req.body));
-    //     logger.info('login pool : ' + JSON.stringify(bl_login_token_pool));
-    //     if (Object.prototype.hasOwnProperty.call(bl_login_token_pool, token)) {
-    //         var response_data = bl_login_token_pool[token];
-    //         delete bl_login_token_pool[token];
-    //         res.json({
-    //             status: 'ok',
-    //             data: response_data
-    //         });
-    //     } else {
-    //         res.json({
-    //             status: 'error',
-    //             data: 'invalid token'
-    //         })
-    //     }
-    // });
+    app.post('/api/bl_login_confirm', jsonParser, (req, res) => {
+        var token = req.body.token;
+        logger.info('req : ' + JSON.stringify(req.body));
+        logger.info('login pool : ' + JSON.stringify(bl_login_token_pool));
+        if (Object.prototype.hasOwnProperty.call(bl_login_token_pool, token)) {
+            var response_data = bl_login_token_pool[token];
+            delete bl_login_token_pool[token];
+            res.json({
+                status: 'ok',
+                data: response_data
+            });
+        } else {
+            res.json({
+                status: 'error',
+                data: 'invalid token'
+            })
+        }
+    });
 
-    // app.get('/api/wechat/bl_login_call_back', (req, res) => {
+    app.get('/api/wechat/bl_login_call_back', (req, res) => {
 
-    //     wx.oauth.getUserInfo(req.query.code)
-    //         .then(function(userProfile) {
-    //             logger.info(userProfile);
-    //             // logger.info('login code : ' + req.query.code);
-    //             logger.info('login token : ' + req.query.state);
-    //             var openid = userProfile.openid;
-    //             var nickname = userProfile.nickname;
-    //             var uuid = make_uuid_by_openid(openid);
-    //             var ts = new Date().getTime();
-    //             var token = req.query.state
-    //             bl_login_token_pool[token] = {
-    //                 "uuid": uuid,
-    //                 "nicknamke": nickname,
-    //                 "ts": ts
-    //             };
-    //             // res.json({
-    //             //     wechatInfo: userProfile
-    //             // });
-    //             res.json({
-    //                 "status": "ok"
-    //             });
-    //         });
+        wx.oauth.getUserInfo(req.query.code)
+            .then(function(userProfile) {
+                logger.info(userProfile);
+                // logger.info('login code : ' + req.query.code);
+                logger.info('login token : ' + req.query.state);
+                var openid = userProfile.openid;
+                var nickname = userProfile.nickname;
+                var uuid = make_uuid_by_openid(openid);
+                var ts = new Date().getTime();
+                var token = req.query.state
+                bl_login_token_pool[token] = {
+                    "uuid": uuid,
+                    "nicknamke": nickname,
+                    "ts": ts
+                };
+                // res.json({
+                //     wechatInfo: userProfile
+                // });
+                res.json({
+                    "status": "ok"
+                });
+            });
 
-    //     clean_login_pool();
-    // });
+        clean_login_pool();
+    });
 
 
 

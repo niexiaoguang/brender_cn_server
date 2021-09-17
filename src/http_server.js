@@ -42,6 +42,16 @@ const {
 
 // ========================================================
 
+// upyun api
+// ========================================================
+const {
+    getUpyunUploadFileSec
+} = require('./utils/upyun.js');
+
+
+
+// ========================================================
+
 
 // qcloud sms api
 // ========================================================
@@ -163,7 +173,13 @@ const start = () => {
     });
 
 
+    // --------------------------- upyun file url crypt ======================================= 
 
+    app.get('/api/upyun_sec',(req,res) => {
+        logger.info('upyun token request : ' + req)
+        const secret = getUpyunUploadFileSec(req.query.url)
+        res.send(secret)
+    })
 
 
     // --------------------------- qiniu ======================================= 

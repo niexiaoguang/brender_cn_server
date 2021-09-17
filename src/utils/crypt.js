@@ -5,8 +5,9 @@ const Hashids = require('hashids/cjs')
 
 const salt = '2aiA3B8ge9ypyuXh';
 
+const { crypt_config } = require('../ssl/crypt_config.js')
 
-const hashids = new Hashids(salt);
+const hashids = new Hashids(crypt_config.salt);
 
 
 const simple_hash_with_salt = (raw, salt) => {
